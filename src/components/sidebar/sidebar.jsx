@@ -46,7 +46,7 @@ function SidebarContent({ links }) {
       {/* Navegación */}
       <nav className="flex flex-col gap-1 p-4 text-white overflow-y-auto">
         {links.map(({ to, icon, label }) => (
-          <div>
+          <div key={to}>
             <hr className="border-white/30 my-2" />
             <NavLink
               key={to}
