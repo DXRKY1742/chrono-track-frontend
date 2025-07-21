@@ -1,5 +1,5 @@
 
-const API_BASE_URL = import.meta.env.BACKEND_URL; 
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL; 
 
 function mapMethod(method) {
   const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
@@ -25,7 +25,6 @@ async function checkStatus(response) {
       const errorData = await response.json();
       errorMessage = errorData.message || errorMessage;
     } catch {
-      // no hace nada si no puede parsear json
     }
     throw new Error(errorMessage);
   }
@@ -48,6 +47,7 @@ function buildUrl(baseUrl, entity, options = '') {
 
 async function request({ method = 'GET', entity = '', options = '', body = null, headers = {} }) {
   const url = buildUrl(API_BASE_URL, entity, options);
+  console.log('request sent to: ' , url)
   const httpMethod = mapMethod(method);
   const combinedHeaders = buildHeaders(entity, headers);
 
@@ -57,6 +57,7 @@ async function request({ method = 'GET', entity = '', options = '', body = null,
   };
 
   if (body) {
+    console.log('body: ', body)
     fetchOptions.body = JSON.stringify(body);
   }
 

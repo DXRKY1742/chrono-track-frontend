@@ -1,5 +1,11 @@
-// import RequireAuth from "../../Guards/RequireAuth";
+
+// React
 import { Outlet } from "react-router-dom";
+
+// Redux
+import { Provider } from "react-redux";
+
+// Components
 import SidebarMenu from "../../components/sidebar/sidebar";
 
 export default function DashboardLayout() {

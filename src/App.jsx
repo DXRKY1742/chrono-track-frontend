@@ -1,4 +1,4 @@
-// react
+// React
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 //PRIMEREACT
 import { PrimeReactProvider } from 'primereact/api';
@@ -18,6 +18,11 @@ import Login from "./pages/guestOnly/login";
 import Register from "./pages/guestOnly/register";
 import NotFound from "./pages/guestOnly/notFound";
 
+// Guards
+import RequireAuth from "./guards/RequireAuth";
+import GuestOnlyGuard from "./guards/GuestOnlyGuard";
+import AuthLoader from "./features/authLoader";
+
 const isAuthenticated = () => {
   return false
 };
@@ -26,35 +31,37 @@ export default function App() {
   return (
     <PrimeReactProvider>
       <BrowserRouter>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              isAuthenticated() ? (
-                <Navigate to="/dashboard/home" />
-              ) : (
-                <Navigate to="/login" />
-              )
-            }
-          />
-
-          {/* Guest Routes */}
-          <Route element={<GuestLayout />}>
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-          </Route>
-
-          {/* Dashboard Routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route path="home" element={<Home />} />
-            <Route path="statistics" element={<Statistics />} />
-            <Route path="agendas" element={<Agendas />} />
-            <Route path="settings" element={<Settings />} />
-          </Route>
-
-          {/* Not found */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AuthLoader/>
+          <Routes>
+            <Route
+              path="/"
+              element={
+                isAuthenticated() ? (
+                  <Navigate to="/dashboard/home" />
+                ) : (
+                  <Navigate to="/login" />
+                )
+              }
+            />
+            {/* Guest Routes */}
+            <Route element={<GuestOnlyGuard />}>
+              <Route element={<GuestLayout />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+              </Route>
+            </Route>
+            {/* Dashboard Routes */}
+            <Route element={<RequireAuth />}>
+              <Route path="/dashboard" element={<DashboardLayout />}>
+                <Route path="home" element={<Home />} />
+                <Route path="statistics" element={<Statistics />} />
+                <Route path="agendas" element={<Agendas />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+            </Route>
+            {/* Not found */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
       </BrowserRouter>
     </PrimeReactProvider>
   );

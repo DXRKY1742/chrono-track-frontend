@@ -1,10 +1,14 @@
 // React
 import { React, useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+
+// Redux
+import { useDispatch } from "react-redux";
+import { logout } from "../../features/authSlice";
+
 // Primereact
 import { Sidebar } from "primereact/sidebar";
 import { Button } from "primereact/button";
-
 
 export default function SidebarMenu() {
   const [visible, setVisible] = useState(false);
@@ -36,6 +40,14 @@ export default function SidebarMenu() {
 }
 
 function SidebarContent({ links }) {
+   const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate("/login");
+  };
+
   return (
     <div className="flex flex-col h-full">
       {/* Header/logo */}
@@ -66,6 +78,15 @@ function SidebarContent({ links }) {
           </div>
         ))}
       </nav>
+      <div className="mt-auto mb-2 p-4 flex justify-center">
+        <Button
+          label="Cerrar sesión"
+          icon="pi pi-sign-out"
+          iconPos="left"
+          onClick={handleLogout}
+          style={{ '--pi-button-icon-margin': '0 12px 0 0' }}
+        />
+      </div>
     </div>
   );
 }

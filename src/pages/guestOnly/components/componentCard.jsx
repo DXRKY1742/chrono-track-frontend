@@ -9,21 +9,36 @@ import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
 
+// Redux
+import { useDispatch, useSelector } from 'react-redux';
+
+// Features
+import { loginAsync, registerAsync } from "../../../features/authSlice";
+
 export function AuthCard({ mode = "login" }) {
+  // Dispatch 
+  const dispatch = useDispatch();
+
+  // Selectors
+  const loading = useSelector(state => state.auth.loading);
+  const error = useSelector(state => state.auth.error);
+
+  // States
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
+  // Miscelaneous
   const isRegister = mode === "register";
 
-  const handleSubmit = () => {
-    if (isRegister) {
-      // lógica registro
-      console.log("Register data:", { name, email, password, confirmPassword });
+  // Handlers
+   const handleSubmit = () => {
+    console.log('Attemting login')
+    if (mode === 'login') {
+      dispatch(loginAsync({ email, password }));
     } else {
-      // lógica login
-      console.log("Login data:", { email, password });
+      dispatch(registerAsync({ name, email, password }));
     }
   };
 
