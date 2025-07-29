@@ -1,0 +1,13 @@
+
+
+.square-switch {
+  
+  vertical-align: middle !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.square-switch .p-inputswitch-slider::before {
+  top: 2px !important;
+  margin-top: 2px !important;
+}

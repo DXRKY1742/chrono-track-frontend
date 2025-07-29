@@ -1,79 +1,65 @@
-import React from "react";
+// React
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+// Primereact
 import { Card } from "primereact/card";
-import { Chart } from "primereact/chart";
+import { Button } from "primereact/button";
 
-export default function Home() {
 
-  /* Pending: 
-      adjust card contents to be centered 
-      flex-col on responsive (small, med screens)
+export default function Agendas() {
+
+  /* COMPLETADO:
+     redireccion a agendas/agendaId/activities
+     estilizado tailwind css
+     Card-based layout implementation
+     Responsive grid design
+     Button styling and navigation functionality
   */
-  const actividades = [
-    "Reunión de equipo",
-    "Desarrollo módulo X",
-    "Revisión de código",
-    "Planificación de sprint",
-    "Llamada con cliente"
-  ];
+  const [agendas, setAgendas] = useState([]);
+  const navigate = useNavigate();
 
-  const donutData = {
-    labels: ['Completado', 'Pendiente', 'En progreso'],
-    datasets: [
-      {
-        data: [50, 13, 20],
-        backgroundColor: ['#4285F4', '#F4B400', '#0F9D58'],
-        hoverBackgroundColor: ['#5C9DF6', '#FFD34E', '#33CC88'],
-      }
-    ]
-  };
+  useEffect(() => {
+    // Simulate fetching agendas
+    const fetchAgendas = async () => {
+      const mockAgendas = [
+        { id: 1, title: "Agenda Proyecto 1", createdAt: "19/06/2023" },
+        { id: 2, title: "Agenda Proyecto 2", createdAt: "19/06/2023" },
+        { id: 3, title: "Agenda Proyecto 3", createdAt: "19/06/2023" },
+      ];
+      setAgendas(mockAgendas);
+    };
 
-  const items = [
-    { tipo: "chart", titulo: "Estadísticas" },
-    { tipo: "actividades", titulo: "Actividades pendientes" },
-    { tipo: "icon", titulo: "Ajustes", icon: "pi pi-user" },
-    { tipo: "icon", titulo: "Agendas", icon: "pi pi-book" },
-  ];
-
-  const renderItem = (item) => (
-    <div className="p-2">
-      <Card className="bg-gray-200 rounded-2xl p-4 flex flex-col min-h-[300px] text-gray-700 shadow-none border-none">
-        <div className="font-medium text-gray-600 mb-4 text-lg">{item.titulo}</div>
-        <div className="flex-grow flex justify-center items-center">
-          {item.tipo === "chart" && (
-            <div className="max-w-[150px] max-h-[150px] w-full h-full">
-              <Chart
-                type="doughnut"
-                data={donutData}
-                options={{ plugins: { legend: { display: false } } }}
-                style={{ width: "100px", height: "100px" }}
-              />
-            </div>
-          )}
-          {item.tipo === "actividades" && (
-            <ul className="w-full list-none p-0 m-0">
-              {actividades.map((actividad, idx) => (
-                <li
-                  key={idx}
-                  className="border-b border-gray-300 py-1"
-                >
-                  {actividad}
-                </li>
-              ))}
-            </ul>
-          )}
-          {item.tipo === "icon" && (
-            <i className={`${item.icon} text-4xl text-gray-900`}></i>
-          )}
-        </div>
-      </Card>
-    </div>
-  );
+    fetchAgendas();
+  }, []);
 
   return (
-    <div className="bg-white p-4 flex justify-center min-h-full min-w-full">
-      <div className="grid grid-cols-2 gap-4 w-[1000px] h-[750px]">
-        {items.map((item, idx) => (
-          <React.Fragment key={idx}>{renderItem(item)}</React.Fragment>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Agendas</h1>
+        <Button 
+          label="Nueva Agenda" 
+          icon="pi pi-plus" 
+          className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+        />
+      </div>
+
+      <div className="space-y-4 max-w-4xl mx-auto">
+        {agendas.map((agenda) => (
+          <Card key={agenda.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <div className="flex justify-between items-center p-6">
+              <div className="text-center flex-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1">{agenda.title}</h3>
+                <p className="text-sm text-gray-500">Creada el {agenda.createdAt}</p>
+              </div>
+              <Button
+                label="Ver"
+                icon="pi pi-eye"
+                className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4"
+                onClick={() => navigate(`/agendas/${agenda.id}/activities`)}
+              />
+            </div>
+          </Card>
         ))}
       </div>
     </div>

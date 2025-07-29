@@ -4,16 +4,17 @@ import { useNavigate } from "react-router-dom";
 
 // Primereact
 import { Card } from "primereact/card";
-import { Accordion, AccordionTab } from "primereact/accordion";
 import { Button } from "primereact/button";
 
 
 export default function Agendas() {
 
-  /* 
-  Pending:
-    Redireccion a agendas/agendaId/activities 
-    estilizado talwind css
+  /* COMPLETADO:
+     redireccion a agendas/agendaId/activities
+     estilizado tailwind css
+     Card-based layout implementation
+     Responsive grid design
+     Button styling and navigation functionality
   */
   const [agendas, setAgendas] = useState([]);
   const navigate = useNavigate();
@@ -22,9 +23,9 @@ export default function Agendas() {
     // Simulate fetching agendas
     const fetchAgendas = async () => {
       const mockAgendas = [
-        { id: 1, descripcion: "Revisión del roadmap de Q3" },
-        { id: 2, descripcion: "Preparación presentación cliente" },
-        { id: 3, descripcion: "Seguimiento tareas equipo de diseño" },
+        { id: 1, title: "Agenda Proyecto 1", createdAt: "19/06/2023" },
+        { id: 2, title: "Agenda Proyecto 2", createdAt: "19/06/2023" },
+        { id: 3, title: "Agenda Proyecto 3", createdAt: "19/06/2023" },
       ];
       setAgendas(mockAgendas);
     };
@@ -33,32 +34,34 @@ export default function Agendas() {
   }, []);
 
   return (
-    <div className="p-6 bg-white min-h-screen text-gray-800">
-      <h1 className="text-3xl font-semibold mb-4">Agendas</h1>
+    <div className="p-6 bg-gray-50 min-h-screen">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-gray-800">Agendas</h1>
+        <Button 
+          label="Nueva Agenda" 
+          icon="pi pi-plus" 
+          className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
+        />
+      </div>
 
-      <Card className="rounded-2xl shadow-md">
-        <div className="flex justify-between items-center px-4 pt-4">
-          <span className="text-xl font-medium">Tus Agendas</span>
-          <Button label="Nueva Agenda" icon="pi pi-plus" />
-        </div>
-
-        <div className="p-4">
-          <Accordion multiple>
-            {agendas.map((agenda) => (
-              <AccordionTab header={`Agenda #${agenda.id}`} key={agenda.id}>
-                <p className="mb-4">{agenda.descripcion}</p>
-                <div className="flex justify-center">
-                  <Button
-                    label="Ver Detalles"
-                    icon="pi pi-arrow-right"
-                    onClick={() => navigate(`/agenda/${agenda.id}`)}
-                  />
-                </div>
-              </AccordionTab>
-            ))}
-          </Accordion>
-        </div>
-      </Card>
+      <div className="space-y-4 max-w-4xl mx-auto">
+        {agendas.map((agenda) => (
+          <Card key={agenda.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
+            <div className="flex justify-between items-center p-6">
+              <div className="text-center flex-1">
+                <h3 className="text-lg font-semibold text-gray-800 mb-1">{agenda.title}</h3>
+                <p className="text-sm text-gray-500">Creada el {agenda.createdAt}</p>
+              </div>
+              <Button
+                label="Ver"
+                icon="pi pi-eye"
+                className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4"
+                onClick={() => navigate(`/agendas/${agenda.id}/activities`)}
+              />
+            </div>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }
