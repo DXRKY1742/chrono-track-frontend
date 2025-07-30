@@ -16,6 +16,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginAsync, registerAsync } from "../../../features/authSlice";
 
 export function AuthCard({ mode = "login" }) {
+
+  // PENDING LABEL FOR USERNAME & EMAIL
+
   // Dispatch 
   const dispatch = useDispatch();
 
@@ -24,7 +27,9 @@ export function AuthCard({ mode = "login" }) {
   const error = useSelector(state => state.auth.error);
 
   // States
-  const [name, setName] = useState('');
+ const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
+  const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,11 +39,12 @@ export function AuthCard({ mode = "login" }) {
 
   // Handlers
    const handleSubmit = () => {
-    console.log('Attemting login')
     if (mode === 'login') {
+      console.log('Attemting login')
       dispatch(loginAsync({ email, password }));
     } else {
-      dispatch(registerAsync({ name, email, password }));
+      console.log('Attempting register')
+      dispatch(registerAsync({ name, username, phone, email, password }));
     }
   };
 
@@ -58,19 +64,47 @@ export function AuthCard({ mode = "login" }) {
           </h1>
 
           {isRegister && (
-            <div>
-              <label htmlFor="name" className="block mb-1 text-sm font-medium">
-                Nombre completo
-              </label>
-              <InputText
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Tu nombre completo"
-                className="w-full rounded"
-              />
-            </div>
+            <>
+              <div>
+                <label htmlFor="name" className="block mb-1 text-sm font-medium">
+                  Nombre completo
+                </label>
+                <InputText
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Tu nombre completo"
+                  className="w-full rounded"
+                />
+              </div>
+              <div>
+                <label htmlFor="username" className="block mb-1 text-sm font-medium">
+                  Nombre de usuario
+                </label>
+                <InputText
+                  id="username"
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Tu usuario"
+                  className="w-full rounded"
+                />
+              </div>
+              <div>
+                <label htmlFor="phone" className="block mb-1 text-sm font-medium">
+                  Teléfono
+                </label>
+                <InputText
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="Tu número"
+                  className="w-full rounded"
+                />
+              </div>
+            </>
           )}
 
           <div>

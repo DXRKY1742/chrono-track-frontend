@@ -1,7 +1,7 @@
 // Redux
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 // Services
-//import { loginUser } from '../services/authService';
+import { loginUser, registerUser } from '../services/authService';
 
 const initialState = {
   isAuthenticated: false,
@@ -12,37 +12,23 @@ const initialState = {
 };
 
 // Login for production
-// export const loginAsync = createAsyncThunk(
-//   'auth/login',
-//   async ({ email, password }) => {
-//     console.log('loginAsync attempt')
-//     const response = await loginUser({ email, password });
-//     return response; 
-//   }
-// );
-
-// Login for frontend testing
 export const loginAsync = createAsyncThunk(
   'auth/login',
-  async ({ email, password }, { rejectWithValue }) => {
-    if (email === 'admin@chronotrack.com' && password === '123qwe') {
-      const user = {
-        name: 'Administrador',
-        email,
-        role: 'admin',
-      };
-      const token = 'fake-jwt-token-admin';
-      return { user, token };
-    }
-
-    return rejectWithValue('Credenciales inválidas');
+  async ({ email, password }) => {
+    console.log('loginAsync attempt')
+    const response = await loginUser({ email, password });
+    return response; 
   }
 );
 
+
+// PENDING IF SUCCESS REDIRECT LOGIN (SUCCESS TOAST)
 export const registerAsync = createAsyncThunk(
   'auth/register',
-  async ({ name, email, password }) => {
-    const response = await registerUser({ name, email, password });
+  async ({name, username, phone, email, password  }) => {
+    console.log('register attempt')
+    const response = await registerUser({ name, username, phone, email, password });
+    console.log('response: ', response)
     return response; 
   } 
 );
@@ -90,7 +76,7 @@ const authSlice = createSlice({
       })
       .addCase(registerAsync.fulfilled, (state, action) => {
         state.loading = false;
-        state.isAuthenticated = true;
+        state.isAuthenticated = false;
         state.user = action.payload.user;
         state.token = action.payload.token;
         localStorage.setItem('token', action.payload.token);

@@ -9,13 +9,7 @@ import { Button } from "primereact/button";
 
 export default function Agendas() {
 
-  /* COMPLETADO:
-     redireccion a agendas/agendaId/activities
-     estilizado tailwind css
-     Card-based layout implementation
-     Responsive grid design
-     Button styling and navigation functionality
-  */
+  /* PENDING CORRECT DASHBOARD MISTAKE (WRONG SCREEN) */
   const [agendas, setAgendas] = useState([]);
   const navigate = useNavigate();
 

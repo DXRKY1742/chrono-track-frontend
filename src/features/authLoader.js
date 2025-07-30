@@ -8,9 +8,18 @@ const AuthLoader = () => {
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    const user = JSON.parse(localStorage.getItem('user'));
+    let user
 
-    if (token && user) {
+    try {
+      user = JSON.parse(localStorage.getItem('user'));
+    } catch (error) {
+      console.warn('Error parsing user from localStorage:', error);
+      user = null;
+    }
+
+    const isValidUser = user && typeof user === 'object' && user !== null && user.id;
+
+    if (token && isValidUser) {
       dispatch(hydrate({ token, user }));
     } else {
       dispatch(logout());
