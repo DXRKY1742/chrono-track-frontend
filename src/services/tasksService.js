@@ -14,7 +14,7 @@ const taskService = {
 
   deleteTask: (id) => baseService.delete('tasks', `${id}`),
 
-  getTaskComments: (id) => baseService.getPaginated('tasks', `${id}/comments`, { page: 1, limit: 1 }),
+  getTaskComments: (id) => baseService.getPaginated('tasks', `${id}/comments`, { page: 1, limit: 10 }),
 
   postTaskComments: (id, body) => baseService.post('tasks', `${id}/comments`, body),
 };
