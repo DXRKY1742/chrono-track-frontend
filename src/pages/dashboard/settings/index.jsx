@@ -1,4 +1,7 @@
+// React
 import React, { useState } from "react";
+
+// Primereact
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 import { InputText } from "primereact/inputtext";
@@ -7,15 +10,15 @@ import { RadioButton } from "primereact/radiobutton";
 import { Dropdown } from "primereact/dropdown";
 import './settings.css';
 
+// Redux
+import { useSelector } from "react-redux";
+
+
 export default function Settings() {
-  /* COMPLETADO:
-         adjust left card height -> smaller
-         adjust button styling  
-         increment card content margin
-         responsive -> flex col on smaller screens 
-         InputSwitch functionality with smooth movement
-         Perfect vertical alignment of toggle buttons
-  */
+  // ----- Selectors -----
+  const user = useSelector((state) => state.auth.user);
+
+  /// ------ States ------
   const [language, setLanguage] = useState(null);
   const [showTips, setShowTips] = useState(true);
   const [emailNotif, setEmailNotif] = useState(true);
@@ -42,8 +45,8 @@ export default function Settings() {
               <i className="pi pi-user text-white text-lg"></i>
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-gray-800">Luis Jesús Mata</h1>
-              <h5 className="text-gray-600">luis.mata@chronotracker.com</h5>
+              <h1 className="text-xl font-semibold text-gray-800">{user?.name}</h1>
+              <h5 className="text-gray-600">{user?.email}</h5>
             </div>
           </div>
 
@@ -51,11 +54,18 @@ export default function Settings() {
 
           <div className="flex flex-col gap-1 m-4">
             <h2 className="text-lg font-semibold mb-2 text-gray-800">Información personal</h2>
-            <p className="text-gray-600">Rol: Desarrollador Fullstack</p>
-            <p className="text-gray-600">Miembro desde: Febrero 2024</p>
-            <p className="text-gray-600">Ubicación: CDMX</p>
+            <p className="text-gray-600">Usuario: {user?.username}</p>
+            <p className="text-gray-600">Teléfono: {user?.phone}</p>
+            <p className="text-gray-600">
+              Miembro desde: {new Date(user?.registerDate).toLocaleDateString("es-MX", {
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+              })}
+            </p>
+            <p className="text-gray-600">Estado: {user?.isActive ? "Activo" : "Inactivo"}</p>
           </div>
-
+          
           <hr className="border-gray-200 my-3 mx-4" />
 
           <div className="flex flex-col gap-1 m-4">
