@@ -16,9 +16,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { loginAsync, registerAsync } from "../../../features/authSlice";
 
 export function AuthCard({ mode = "login" }) {
-
-  // PENDING LABEL FOR USERNAME & EMAIL
-
   // Dispatch 
   const dispatch = useDispatch();
 
@@ -27,7 +24,8 @@ export function AuthCard({ mode = "login" }) {
   const error = useSelector(state => state.auth.error);
 
   // States
- const [name, setName] = useState('');
+  const [identifier, setIdentifier] = useState('');
+  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -41,7 +39,7 @@ export function AuthCard({ mode = "login" }) {
    const handleSubmit = () => {
     if (mode === 'login') {
       console.log('Attemting login')
-      dispatch(loginAsync({ email, password }));
+      dispatch(loginAsync({ identifier, password }));
     } else {
       console.log('Attempting register')
       dispatch(registerAsync({ name, username, phone, email, password }));
@@ -108,15 +106,15 @@ export function AuthCard({ mode = "login" }) {
           )}
 
           <div>
-            <label htmlFor="email" className="block mb-1 text-sm font-medium">
-              Correo electrónico
+            <label htmlFor="identifier" className="block mb-1 text-sm font-medium">
+              Correo o usuario
             </label>
             <InputText
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="ejemplo@chronotrack.com"
+              id="identifier"
+              type="text"
+              value={identifier}
+              onChange={(e) => setIdentifier(e.target.value)}
+              placeholder="correo@ejemplo.com o username"
               className="w-full rounded"
             />
           </div>

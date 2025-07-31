@@ -14,9 +14,10 @@ const initialState = {
 // Login for production
 export const loginAsync = createAsyncThunk(
   'auth/login',
-  async ({ email, password }) => {
+  async ({ identifier, password }) => {
     console.log('loginAsync attempt')
-    const response = await loginUser({ email, password });
+    const response = await loginUser({ identifier, password });
+    console.log(response)
     return response; 
   }
 );

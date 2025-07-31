@@ -1,61 +1,164 @@
 // React
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useEffect, useState} from "react";
+import { useNavigate } from 'react-router-dom';
 
 // Primereact
 import { Card } from "primereact/card";
-import { Button } from "primereact/button";
+import { Chart } from "primereact/chart";
 
+// Services
+import taskService from "../../../services/tasksService";
 
-export default function Agendas() {
-
-  /* PENDING CORRECT DASHBOARD MISTAKE (WRONG SCREEN) */
-  const [agendas, setAgendas] = useState([]);
-  const navigate = useNavigate();
+export default function Home() {
+  // ----- UseStates -----
+  // Activities / Tasks
+  const [pendingActivities, setPendingActivities] = useState([])
+  const [inProgressActivities, setInProgressActivities] = useState([])
+  const [completedActivities, setCompletedActivities] = useState([])
+  const [dueTodayActivities, setDueTodayActivities] = useState([])
+  
+  // Miscelaneous
+  const [loading, setLoading] = useState(false) 
 
   useEffect(() => {
-    // Simulate fetching agendas
-    const fetchAgendas = async () => {
-      const mockAgendas = [
-        { id: 1, title: "Agenda Proyecto 1", createdAt: "19/06/2023" },
-        { id: 2, title: "Agenda Proyecto 2", createdAt: "19/06/2023" },
-        { id: 3, title: "Agenda Proyecto 3", createdAt: "19/06/2023" },
-      ];
-      setAgendas(mockAgendas);
-    };
+    async function fetchTasks() {
+      try {
+        setLoading(true);
+        const [pendingRes, progressRes, completedRes, dueTodayRes] = await Promise.all([
+          taskService.fetchAssignedPending(),
+          taskService.fetchAssignedProgress(),
+          taskService.fetchAssignedCompleted(),
+          taskService.fetchAssignedDueToday(),
+        ]);
+        setPendingActivities(pendingRes.data || []);
+        setInProgressActivities(progressRes.data || []);
+        setCompletedActivities(completedRes.data || []);
+        setDueTodayActivities(dueTodayRes.data || []);
+      } catch (error) {
+        console.error("Error cargando las tareas:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
 
-    fetchAgendas();
+    fetchTasks();
   }, []);
 
-  return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-800">Agendas</h1>
-        <Button 
-          label="Nueva Agenda" 
-          icon="pi pi-plus" 
-          className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200"
-        />
-      </div>
+  //----- Navigation -----
+  const navigate = useNavigate();
 
-      <div className="space-y-4 max-w-4xl mx-auto">
-        {agendas.map((agenda) => (
-          <Card key={agenda.id} className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200">
-            <div className="flex justify-between items-center p-6">
-              <div className="text-center flex-1">
-                <h3 className="text-lg font-semibold text-gray-800 mb-1">{agenda.title}</h3>
-                <p className="text-sm text-gray-500">Creada el {agenda.createdAt}</p>
+  const redirectTo = (index) => {
+    switch (index) {
+      case 1:
+        navigate('/dashboard/statistics');
+        break;
+      case 2:
+        navigate('/dashboard/agendas');
+        break;
+      case 3:
+        navigate('/dashboard/settings');
+        break;
+      // PENDING: activity redirect con agenda
+      // case 4:
+      //   navigate('/dashboard/profile');
+      //   break;
+      default:
+        console.warn('Índice no válido');
+        break;
+    }
+  };
+
+
+  // Datos para el gráfico de dona
+  const donutData =
+  completedActivities.length === 0 &&
+  pendingActivities.length === 0 &&
+  inProgressActivities.length === 0 &&
+  dueTodayActivities.length === 0
+    ? {
+        labels: ["No activities"],
+        datasets: [
+          {
+            data: [1],
+            backgroundColor: ["#d1d5db"], 
+            hoverBackgroundColor: ["#d1d5db"],
+          },
+        ],
+      }
+    : {
+        labels: ["Completado", "Pendiente", "En progreso", "Vencidas"],
+        datasets: [
+          {
+            data: [
+              completedActivities.length,
+              pendingActivities.length,
+              inProgressActivities.length,
+              dueTodayActivities.length,
+            ],
+            backgroundColor: ["#4285F4", "#F4B400", "#0F9D58", "#E53935"],
+            hoverBackgroundColor: ["#5C9DF6", "#FFD34E", "#33CC88", "#F0625F"],
+          },
+        ],
+      };
+
+
+  // agregar {isLoading ? () : <progressSpinner/>}
+  return (
+    <div className="bg-gray-50 min-h-screen p-8">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {/* Estadísticas */}
+          <Card onClick={() => redirectTo(1)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
+            <div className="text-gray-400 font-semibold mb-2 text-lg">Estadísticas</div>
+            <div className="flex-grow flex justify-center items-center">
+              <div className="w-[180px] h-[180px] flex justify-center items-center">
+                <Chart
+                  type="doughnut"
+                  data={donutData}
+                  options={{ plugins: { legend: { display: false } }, maintainAspectRatio: false }}
+                  style={{ width: "160px", height: "160px" }}
+                />
               </div>
-              <Button
-                label="Ver"
-                icon="pi pi-eye"
-                className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4"
-                onClick={() => navigate(`/agendas/${agenda.id}/activities`)}
-              />
             </div>
           </Card>
-        ))}
+
+          {/* Actividades para hoy */}
+          <Card className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] shadow-none border-none">
+            <div className="text-gray-400 font-semibold mb-2 text-lg">Actividades pendientes</div>
+            <div className="flex-grow flex flex-col justify-center overflow-auto max-h-[300px]">
+              {loading ? (
+                <div className="text-center text-gray-600">Cargando...</div>
+              ) : pendingActivities.length === 0 ? (
+                <div className="text-center text-gray-600">No hay actividades pendientes</div>
+              ) : (
+                <ul className="list-none p-0 m-0 space-y-2">
+                  {pendingActivities.map((actividad) => (
+                    <li key={actividad.id} className="border-b border-gray-300 py-2 text-gray-700 text-base">
+                      {actividad.title}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </Card>
+              
+          {/* Ajustes */}
+          <Card onClick={() => redirectTo(3)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
+            <div className="text-gray-400 font-semibold mb-2 text-lg">Ajustes</div>
+            <div className="flex-grow flex justify-center items-center">
+              <i className="pi pi-user text-[100px] text-gray-400" style={{ fontWeight: 100 }}></i>
+            </div>
+          </Card>
+
+          {/* Agendas */}
+          <Card onClick={() => redirectTo(2)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
+            <div className="text-gray-400 font-semibold mb-2 text-lg">Agendas</div>
+            <div className="flex-grow flex justify-center items-center">
+              <i className="pi pi-book text-[100px] text-gray-400" style={{ fontWeight: 100 }}></i>
+            </div>
+          </Card>
+        </div>
       </div>
-    </div>
-  );
+    </div>
+  );
 }

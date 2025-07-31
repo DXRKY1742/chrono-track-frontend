@@ -1,8 +1,8 @@
 // src/services/authService.js
 import { baseService } from "./baseService";
 
-export async function loginUser({ email, password }) {
-  return baseService.post('auth/login', { email, password });
+export async function loginUser({ identifier, password }) {
+  return baseService.post('auth/login', { identifier, password });
 }
 
 export async function registerUser({ name, username, phone, email, password }) {

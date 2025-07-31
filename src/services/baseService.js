@@ -41,13 +41,22 @@ function buildHeaders(entity, extraHeaders = {}) {
   return { ...baseHeaders, ...extraHeaders };
 }
 
-function buildUrl(baseUrl, entity, options = '') {
-  return `${baseUrl}/${entity}${options ? `/${options}` : ''}`;
+function buildUrl(baseUrl, entity, path = '', query = {}) {
+  const url = new URL(`${baseUrl}/${entity}${path ? `/${path}` : ''}`);
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      url.searchParams.append(key, value);
+    }
+  });
+
+  return url.toString();
 }
 
-async function request({ method = 'GET', entity = '', options = '', body = null, headers = {} }) {
-  const url = buildUrl(API_BASE_URL, entity, options);
-  console.log('request sent to: ' , url)
+async function request({ method = 'GET', entity = '', path = '', query = {}, body = null, headers = {} }) {
+  const url = buildUrl(API_BASE_URL, entity, path, query);
+  console.log('request sent to:', url);
+
   const httpMethod = mapMethod(method);
   const combinedHeaders = buildHeaders(entity, headers);
 
@@ -57,7 +66,6 @@ async function request({ method = 'GET', entity = '', options = '', body = null,
   };
 
   if (body) {
-    console.log('body: ', body)
     fetchOptions.body = JSON.stringify(body);
   }
 
@@ -65,10 +73,17 @@ async function request({ method = 'GET', entity = '', options = '', body = null,
   return checkStatus(response);
 }
 
+
+
 export const baseService = {
   request,
-  get: (entity, options = '', headers = {}) => request({ method: 'GET', entity, options, headers }),
-  post: (entity, body, headers = {}) => request({ method: 'POST', entity, body, headers }),
-  patch: (entity, options, body, headers = {}) => request({ method: 'PATCH', entity, options, body, headers }),
-  delete: (entity, options, headers = {}) => request({ method: 'DELETE', entity, options, headers }),
+  get: (entity, path = '', headers = {}) => request({ method: 'GET', entity, path, headers }),
+  getPaginated: (entity, path = '', query = {}, headers = {}) =>
+    request({ method: 'GET', entity, path, query, headers }),
+  post: (entity, body, headers = {}) =>
+    request({ method: 'POST', entity, body, headers }),
+  patch: (entity, path, body, headers = {}) =>
+    request({ method: 'PATCH', entity, path, body, headers }),
+  delete: (entity, path, headers = {}) =>
+    request({ method: 'DELETE', entity, path, headers }),
 };
