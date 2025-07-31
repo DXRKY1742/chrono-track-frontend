@@ -9,7 +9,7 @@ import { Button } from "primereact/button";
 const isAuthenticated = true; // reemplaza esto por tu estado real
 
 export default function NotFound() {
-  const target = isAuthenticated ? "/dashboard" : "/login";
+  const target = isAuthenticated ? "/dashboard/home" : "/login";
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
