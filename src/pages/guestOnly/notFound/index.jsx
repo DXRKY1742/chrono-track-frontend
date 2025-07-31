@@ -5,10 +5,11 @@ import { NavLink } from "react-router-dom";
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
 
-// Auth context (aquí lo simulamos)
-const isAuthenticated = true; // reemplaza esto por tu estado real
+// Redux
+import { useSelector } from "react-redux";
 
 export default function NotFound() {
+  const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const target = isAuthenticated ? "/dashboard/home" : "/login";
 
   return (
