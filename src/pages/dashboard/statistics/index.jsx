@@ -12,6 +12,11 @@ import agendaService from '../../../services/agendaService';
 import taskService from '../../../services/tasksService';
 
 export default function Statistics() {
+  /* Pending:
+        - Testing
+        - Correct task mapping 
+  */  
+
   // ----- States -----
   // Agendas
   const [agendas, setAgendas] = useState([]);

@@ -3,6 +3,7 @@
 // React
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 // PrimeReact
 import { Card } from 'primereact/card';
@@ -34,15 +35,23 @@ export function AuthCard({ mode = "login" }) {
 
   // Miscelaneous
   const isRegister = mode === "register";
+  const navigate = useNavigate();
+
 
   // Handlers
-   const handleSubmit = () => {
+   const handleSubmit = async () => {
     if (mode === 'login') {
       console.log('Attemting login')
       dispatch(loginAsync({ identifier, password }));
     } else {
       console.log('Attempting register')
-      dispatch(registerAsync({ name, username, phone, email, password }));
+      const resultAction = await dispatch(registerAsync({ name, username, phone, email, password }));
+      if (registerAsync.fulfilled.match(resultAction)) {
+        console.log('Registro exitoso, redirigiendo al login...');
+        navigate('/login');
+      } else {
+        console.error('Error al registrar:', resultAction.error?.message);
+      }
     }
   };
 
@@ -105,19 +114,36 @@ export function AuthCard({ mode = "login" }) {
             </>
           )}
 
-          <div>
-            <label htmlFor="identifier" className="block mb-1 text-sm font-medium">
-              Correo o usuario
-            </label>
-            <InputText
-              id="identifier"
-              type="text"
-              value={identifier}
-              onChange={(e) => setIdentifier(e.target.value)}
-              placeholder="correo@ejemplo.com o username"
-              className="w-full rounded"
-            />
-          </div>
+          {isRegister ? (
+            <div>
+              <label htmlFor="email" className="block mb-1 text-sm font-medium">
+                Correo electrónico
+              </label>
+              <InputText
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="correo@ejemplo.com"
+                className="w-full rounded"
+              />
+            </div>
+          ) : (
+            <div>
+              <label htmlFor="identifier" className="block mb-1 text-sm font-medium">
+                Correo o usuario
+              </label>
+              <InputText
+                id="identifier"
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
+                placeholder="correo@ejemplo.com o username"
+                className="w-full rounded"
+              />
+            </div>
+          )}
+
 
           <div>
             <label htmlFor="password" className="block mb-1 text-sm font-medium">

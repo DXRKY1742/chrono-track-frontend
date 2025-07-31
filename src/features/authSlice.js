@@ -11,7 +11,6 @@ const initialState = {
   error: null,
 };
 
-// Login for production
 export const loginAsync = createAsyncThunk(
   'auth/login',
   async ({ identifier, password }) => {
@@ -22,8 +21,6 @@ export const loginAsync = createAsyncThunk(
   }
 );
 
-
-// PENDING IF SUCCESS REDIRECT LOGIN (SUCCESS TOAST)
 export const registerAsync = createAsyncThunk(
   'auth/register',
   async ({name, username, phone, email, password  }) => {
