@@ -12,16 +12,17 @@ import agendaService from '../../../services/agendaService';
 import taskService from '../../../services/tasksService';
 
 export default function Statistics() {
-  /* Pending:
-        - Testing
-        - Correct task mapping 
-  */  
 
+  /* 
+    PENDING:
+        - Filter by dates
+  */
   // ----- States -----
   // Agendas
   const [agendas, setAgendas] = useState([]);
   // Tasks
   const [tasks, setTasks] = useState([]);
+  const [assignedTasks, setAssignedTasks] = useState([])
   const [pendingTasks, setPendingTasks] = useState([]);
   const [inProgressTasks, setInProgressTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -32,9 +33,14 @@ export default function Statistics() {
   
   //----- Dataloading -----
   useEffect(() => {
-    fetchTasks();
     fetchAgendas();
   }, []);
+
+  useEffect(() => {
+    console.log(assignedTasks)
+    fetchGlobalTasks();
+    fetchAssignedTasks();
+  }, [agendas])
 
   //----- Functions -----
   async function fetchAgendas() {
@@ -49,25 +55,67 @@ export default function Statistics() {
     }
   }
 
-  async function fetchTasks() {
+  async function fetchAssignedTasks(){
     try {
       setLoading(true);
-      const [assignedRes, pendingRes, progressRes, completedRes] = await Promise.all([
-        taskService.fetchAssigned(),
-        taskService.fetchAssignedPending(),
-        taskService.fetchAssignedProgress(),
-        taskService.fetchAssignedCompleted()
-      ]);
-      setTasks(assignedRes?.data || []);
-      setPendingTasks(pendingRes?.data || []);
-      setInProgressTasks(progressRes?.data || []);
-      setCompletedTasks(completedRes?.data || []);
+      const res = await taskService.fetchAssigned();
+      setAssignedTasks(res || []);
     } catch (error) {
-      console.error("Error cargando las tareas:", error);
+      console.error("Error cargando las tareas asignadas:", error);
     } finally {
       setLoading(false);
     }
   }
+
+  async function fetchGlobalTasks() {
+    try {
+      setLoading(true);
+      const pendingTasks = [];
+      const inProgressTasks = [];
+      const completedTasks = [];
+
+      for (const agenda of agendas) {
+        const response = await agendaService.fetchTasksByAgendaId(agenda.id);
+        const tasks = response || [];
+        for (const task of tasks) {
+          const mappedTask = {
+            ...task,
+            agendaId: agenda.id,
+            agendaName: agenda.name,
+            stateLabel: stateMap[task.state]?.label || 'Unknown',
+            stateClass: stateMap[task.state]?.className || '',
+          };
+          switch (task.state) {
+            case 'a':
+              pendingTasks.push(mappedTask);
+              break;
+            case 'p':
+              inProgressTasks.push(mappedTask);
+              break;
+            case 'c':
+              completedTasks.push(mappedTask);
+              break;
+            default:
+              break;
+          }
+        }
+      }
+      setPendingTasks(pendingTasks);
+      setInProgressTasks(inProgressTasks);
+      setCompletedTasks(completedTasks);
+    } catch (error) {
+      console.error("Error cargando las tareas globales:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  // ----- Mapper -----
+  const stateMap = {
+    a: { label: 'Pending', className: 'bg-yellow-100 text-yellow-700' },
+    p: { label: 'In Progress', className: 'bg-blue-100 text-blue-700' },
+    c: { label: 'Completed', className: 'bg-green-100 text-green-700' },
+    x: { label: 'Canceled', className: 'bg-red-100 text-red-700' },
+  };
 
   // ----- Charts -----
 
@@ -95,7 +143,7 @@ export default function Statistics() {
   const pieChartData = (() => {
     const categoryCount = {};
     pendingTasks.forEach(task => {
-      const agenda = task.agenda || 'Unknown';
+      const agenda = task.agendaName || 'Unknown';
       categoryCount[agenda] = (categoryCount[agenda] || 0) + 1;
     });
 
@@ -183,26 +231,15 @@ export default function Statistics() {
         {/* Pie */}
         <Card className="flex-1 lg:basis-[30%] bg-white rounded-xl shadow-lg border-0 overflow-hidden">
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Task pending</h2>
-            <div className="flex items-center gap-6">
-              <div className="w-32 h-32 flex-shrink-0">
-                <Chart type="doughnut" data={pieChartData} options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  cutout: '60%',
-                  plugins: { legend: { display: false }}
-                }} />
-              </div>
-              <div className="flex-1 space-y-3">
-                {pieChartData.labels.map((label, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="flex items-center gap-2">
-                      <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: pieChartData.datasets[0].backgroundColor[index] }}></div>
-                      {label}
-                    </span>
-                    <span className="font-medium">{pieChartData.datasets[0].data[index]}</span>
-                  </div>
-                ))}
+            <h2 className="text-lg font-semibold mb-4 text-gray-800">Pending Tasks</h2>
+            <div className="flex-grow flex justify-center items-center">
+              <div className="w-[180px] h-[180px] flex justify-center items-center">
+                <Chart
+                  type="doughnut"
+                  data={pieChartData}
+                  options={{ plugins: { legend: { display: false } }, maintainAspectRatio: false }}
+                  style={{ width: "160px", height: "160px" }}
+                />
               </div>
             </div>
           </div>
@@ -216,31 +253,28 @@ export default function Statistics() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Manager</th>
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Due Date</th>
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Agenda</th>
+                    <th className="text-left py-3 text-sm font-medium text-gray-600">Creation date</th>
+                    <th className="text-left py-3 text-sm font-medium text-gray-600">Initialized on</th>
+                    <th className="text-left py-3 text-sm font-medium text-gray-600">Due date</th>
                     <th className="text-left py-3 text-sm font-medium text-gray-600">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {tasks.map((task, index) => (
-                    <tr key={task.id} className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50/30' : 'bg-white'}`}>
-                      <td className="py-4 text-gray-800">{task.manager || 'N/A'}</td>
-                      <td className="py-4 text-gray-600">{task.due || '—'}</td>
-                      <td className="py-4 text-gray-600">{task.agenda || '—'}</td>
-                      <td className="py-4">
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                          task.status === 'Complete' ? 'bg-green-100 text-green-700' :
-                          task.status === 'In Progress' ? 'bg-blue-100 text-blue-700' :
-                          task.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                          task.status === 'Approved' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-red-100 text-red-700'
-                        }`}>
-                          {task.status || 'Unknown'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {assignedTasks.map((task, index) => {
+                    const stateInfo = stateMap[task.state] || { label: 'Unknown', className: 'bg-gray-100 text-gray-700' };
+                    return (
+                      <tr key={task.id} className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50/30' : 'bg-white'}`}>
+                        <td className="py-4 text-gray-800">{task.registerDate || 'N/A'}</td>
+                        <td className="py-4 text-gray-600">{task.initDate || '—'}</td>
+                        <td className="py-4 text-gray-600">{task.desiredDate || '—'}</td>
+                        <td className="py-4">
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${stateInfo.className}`}>
+                            {stateInfo.label}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

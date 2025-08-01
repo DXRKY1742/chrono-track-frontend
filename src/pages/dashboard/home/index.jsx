@@ -10,6 +10,8 @@ import { Chart } from "primereact/chart";
 import taskService from "../../../services/tasksService";
 
 export default function Home() {
+
+  // Pending: Redirect a activities
   // ----- UseStates -----
   // Activities / Tasks
   const [pendingActivities, setPendingActivities] = useState([])
@@ -30,17 +32,16 @@ export default function Home() {
           taskService.fetchAssignedCompleted(),
           taskService.fetchAssignedDueToday(),
         ]);
-        setPendingActivities(pendingRes.data || []);
-        setInProgressActivities(progressRes.data || []);
-        setCompletedActivities(completedRes.data || []);
-        setDueTodayActivities(dueTodayRes.data || []);
+        setPendingActivities(pendingRes || []);
+        setInProgressActivities(progressRes || []);
+        setCompletedActivities(completedRes || []);
+        setDueTodayActivities(dueTodayRes || []);
       } catch (error) {
         console.error("Error cargando las tareas:", error);
       } finally {
         setLoading(false);
       }
     }
-
     fetchTasks();
   }, []);
 

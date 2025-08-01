@@ -34,7 +34,7 @@ export default function Agendas() {
       console.log(requestResult)
       setAgendas(requestResult || []);
     } catch (error) {
-      console.error("Error cargando las tareas:", error);
+      console.error("Error cargando las agendas:", error);
     } finally {
       setLoading(false);
     }
