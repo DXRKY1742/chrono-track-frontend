@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
+// Redux
+import { useSelector } from "react-redux";
+
 // Primereact
 import { Card } from 'primereact/card';
 import { Chart } from 'primereact/chart';
@@ -17,6 +20,13 @@ export default function Statistics() {
     PENDING:
         - Filter by dates
   */
+
+  // ----- Theme -----
+  const currentTheme = useSelector((state) => state.theme.currentTheme);
+  const isDark = currentTheme === "arya-blue";
+  const emphasizeTextClass = isDark ? "text-blue-300" : "text-blue-700";
+  const cardBgClass = isDark ? "bg-gray-900" : "bg-gray-200";
+
   // ----- States -----
   // Agendas
   const [agendas, setAgendas] = useState([]);
@@ -164,13 +174,13 @@ export default function Statistics() {
   })();
 
   return (
-    <div className="p-6 bg-gray-50 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Estadísticas</h1>
+    <div className="p-6 min-h-screen">
+      <h1 className="text-3xl font-bold mb-6">Estadísticas</h1>
       
       {/* Fila superior - Gráfico de barras + My Agendas */}
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
         {/* Bar Chart */}
-        <Card className="flex-1 lg:basis-[75%] bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+        <Card className={`${cardBgClass} flex-1 lg:basis-[75%] rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium text-blue-600">Tasks report in range of date</h2>
@@ -206,17 +216,21 @@ export default function Statistics() {
         </Card>
 
         {/* Agendas */}
-        <Card className="flex-1 lg:basis-[25%] bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+        <Card className={`${cardBgClass} flex-1 lg:basis-[25%] rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">My Agendas</h2>
+            <h2 className="text-lg font-semibold mb-4">My Agendas</h2>
             <div className="space-y-4">
               {agendas.map((agenda, index) => (
                 <div key={index} className="flex justify-between items-center">
-                  <span className="text-gray-700">{agenda.name || agenda.label}</span>
+                  <span className="">{agenda.name || agenda.label}</span>
                   <Button
                     label="Ver"
                     icon="pi pi-eye"
-                    className="bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4"
+                    className={`${isDark 
+                      ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+                      : "bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+                      text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4`
+                    }
                     onClick={() => navigate(`/dashboard/agendas/${agenda.id}/activities`)}
                   />
                 </div>
@@ -229,9 +243,9 @@ export default function Statistics() {
       {/* Fila inferior - Pie + Tabla */}
       <div className="flex flex-col lg:flex-row gap-6">
         {/* Pie */}
-        <Card className="flex-1 lg:basis-[30%] bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+        <Card className={`${cardBgClass} flex-1 lg:basis-[30%]  rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4 text-gray-800">Pending Tasks</h2>
+            <h2 className="text-lg font-semibold mb-4">Pending Tasks</h2>
             <div className="flex-grow flex justify-center items-center">
               <div className="w-[180px] h-[180px] flex justify-center items-center">
                 <Chart
@@ -246,17 +260,17 @@ export default function Statistics() {
         </Card>
 
         {/* Tabla */}
-        <Card className="flex-1 lg:basis-[70%] bg-white rounded-xl shadow-lg border-0 overflow-hidden">
+        <Card className={`${cardBgClass} flex-1 lg:basis-[70%]  rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
             <h2 className="text-lg font-semibold mb-4 text-blue-600">Tasks assigned to me</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Creation date</th>
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Initialized on</th>
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Due date</th>
-                    <th className="text-left py-3 text-sm font-medium text-gray-600">Status</th>
+                  <tr className="border-b">
+                    <th className="text-left py-3 text-sm font-medium">Creation date</th>
+                    <th className="text-left py-3 text-sm font-medium">Initialized on</th>
+                    <th className="text-left py-3 text-sm font-medium">Due date</th>
+                    <th className="text-left py-3 text-sm font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>

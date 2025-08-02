@@ -1,8 +1,13 @@
 // React
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+
+// Redux
+import { useSelector } from "react-redux";
+
 //PRIMEREACT
 import { PrimeReactProvider } from 'primereact/api';
-import 'primereact/resources/themes/saga-blue/theme.css';  
+import 'primereact/resources/themes/saga-blue/theme.css'; 
 import 'primereact/resources/primereact.min.css';         
 import 'primeicons/primeicons.css';  
 
@@ -31,6 +36,22 @@ const isAuthenticated = () => {
 };
 
 export default function App() {
+  const theme = useSelector((state) => state.theme.currentTheme);
+
+  useEffect(() => {
+    const id = 'primereact-theme-link';
+    let link = document.getElementById(id);
+
+    if (!link) {
+      link = document.createElement('link');
+      link.id = id;
+      link.rel = 'stylesheet';
+      document.head.appendChild(link);
+    }
+
+    link.href = `https://unpkg.com/primereact/resources/themes/${theme}/theme.css`;
+  }, [theme]);
+
   return (
     <PrimeReactProvider>
       <BrowserRouter>

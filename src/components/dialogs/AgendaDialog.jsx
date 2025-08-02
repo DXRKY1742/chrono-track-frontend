@@ -94,18 +94,14 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
           <div className="flex justify-end gap-2 mt-4">
             <button
               onClick={handleCancel}
-              className="px-4 py-2 rounded-md bg-gray-300 hover:bg-gray-400 text-gray-700 font-semibold transition"
+              className="px-4 py-2 rounded-md font-semibold transition"
             >
               Cancelar
             </button>
             <button
               onClick={handleSubmit}
               disabled={!name || !description}
-              className={`px-4 py-2 rounded-md font-semibold text-white transition ${
-                !name || !description
-                  ? 'bg-blue-300 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
-              }`}
+              className={`px-4 py-2 rounded-md font-semibold text-white transition bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700`}
             >
               {agendaToEdit ? "Actualizar" : "Guardar"}
             </button>

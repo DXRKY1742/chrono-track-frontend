@@ -4,6 +4,9 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
+// Redux
+import { useSelector } from "react-redux";
+
 // PrimeReact
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
@@ -18,6 +21,10 @@ function ActivitiesView() {
   // ----- Params -----
   const { agendaId } = useParams(); 
 
+  // ----- Theme -----
+  const currentTheme = useSelector((state) => state.theme.currentTheme);
+  const isDark = currentTheme === "arya-blue";
+
   // ----- States -----
   const [completedActivities, setCompletedActivities] = useState([]);
   const [pendingActivities, setPendingActivities] = useState([]);
@@ -29,7 +36,7 @@ function ActivitiesView() {
   // Miscelaneous
   const [showDialog, setShowDialog] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
-
+  const navigate = useNavigate();
 
   // Column definitions
   const completedActivitiesColumns = [
@@ -84,7 +91,7 @@ function ActivitiesView() {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-gray-600 text-lg">Cargando actividades...</p>
+        <p className="text-lg">Cargando actividades...</p>
       </div>
     );
   }
@@ -102,9 +109,13 @@ function ActivitiesView() {
         activityToEdit = {selectedActivity}
       />
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Agenda {agendaId}</h1>
+        <h1 className="text-3xl font-bold">Agenda {agendaId}</h1>
         <button 
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2"
+          className={`${isDark 
+            ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+            : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+            text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
+          }
           onClick={() => navigate(`create`)}
         >
           <i className="pi pi-plus" />
@@ -114,8 +125,8 @@ function ActivitiesView() {
 
       {/* Tabla de actividades pendientes */}
       <div className="mb-12">
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Actividades pendientes</h2>
-        <div className="rounded-lg overflow-hidden border border-gray-300 bg-white shadow">
+        <h2 className="text-2xl font-semibold mb-4">Actividades pendientes</h2>
+        <div className="rounded-lg overflow-hidden border shadow">
           <DataTable
             value={pendingActivities.slice(pageIndexPending * pageSize, (pageIndexPending + 1) * pageSize)}
             className="w-full text-m"
@@ -129,7 +140,7 @@ function ActivitiesView() {
             totalRecords={pendingActivities.length}
             onPage={(e) => setPageIndexPending(e.page)}
             emptyMessage={
-              <div className="text-center text-gray-500 py-6">No hay actividades disponibles</div>
+              <div className="text-center py-6">No hay actividades disponibles</div>
             }
           >
             {pendingActivitiesColumns.map(col => (
@@ -141,7 +152,7 @@ function ActivitiesView() {
 
       {/* Tabla de actividades completadas */}
       <div>
-        <h2 className="text-2xl font-semibold text-gray-700 mb-4">Actividades completadas</h2>
+        <h2 className="text-2xl font-semibold mb-4">Actividades completadas</h2>
         <div className="rounded-lg overflow-hidden border border-gray-300 bg-white shadow">
           <DataTable
             value={completedActivities.slice(pageIndexCompleted * pageSize, (pageIndexCompleted + 1) * pageSize)}
@@ -156,7 +167,7 @@ function ActivitiesView() {
             totalRecords={completedActivities.length}
             onPage={(e) => setPageIndexCompleted(e.page)}
             emptyMessage={
-              <div className="text-center text-gray-500 py-6">No hay actividades disponibles</div>
+              <div className="text-center py-6">No hay actividades disponibles</div>
             }
           >
             {completedActivitiesColumns.map(col => (

@@ -3,7 +3,7 @@ import { React, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 
 // Redux
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../features/authSlice";
 
 // Primereact
@@ -11,6 +11,9 @@ import { Sidebar } from "primereact/sidebar";
 import { Button } from "primereact/button";
 
 export default function SidebarMenu() {
+  const currentTheme = useSelector(state => state.theme.currentTheme);
+  const isDarkMode = currentTheme === 'arya-blue';
+
   const [visible, setVisible] = useState(false);
 
   const links = [
@@ -28,19 +31,22 @@ export default function SidebarMenu() {
       <Sidebar
         visible={visible}
         onHide={() => setVisible(false)}
-        className="lg:hidden bg-[#2979FF] text-white"
+        style={{
+          backgroundColor: isDarkMode ? '#1f2937' : '#2979FF',
+          color: isDarkMode ? '#fff' : '#fff',
+        }}
       >
-        <SidebarContent links={links} />
+        <SidebarContent links={links} isDarkMode={isDarkMode} />
       </Sidebar>
-      <aside className="hidden lg:flex flex-col w-64 h-screen border-r shadow-sm bg-[#2979FF] text-white">
-        <SidebarContent links={links} />
+      <aside className={`hidden lg:flex flex-col w-64 h-screen border-r shadow-sm ${isDarkMode ? "bg-gray-900 text-white" : "bg-[#2979FF] text-white"}`}>
+        <SidebarContent links={links} isDarkMode={isDarkMode} />
       </aside>
     </>
   );
 }
 
-function SidebarContent({ links }) {
-   const dispatch = useDispatch();
+function SidebarContent({ links, isDarkMode  }) {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -56,7 +62,7 @@ function SidebarContent({ links }) {
       </div>
 
       {/* Navegación */}
-      <nav className="flex flex-col gap-1 p-4 text-white overflow-y-auto">
+      <nav className="flex flex-col gap-1 p-4 overflow-y-auto">
         {links.map(({ to, icon, label }) => (
           <div key={to}>
             <hr className="border-white/30 my-2" />
@@ -66,7 +72,11 @@ function SidebarContent({ links }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 p-2 rounded transition-all justify-center ${
                   isActive
-                    ? "bg-[#679dfc] text-[#133775] font-semibold"
+                    ? isDarkMode
+                      ? "bg-gray-700 text-white font-semibold"
+                      : "bg-[#679dfc] text-[#133775] font-semibold"
+                    : isDarkMode
+                    ? "hover:bg-gray-800"
                     : "hover:bg-white/20"
                 }`
               }
@@ -84,6 +94,7 @@ function SidebarContent({ links }) {
           icon="pi pi-sign-out"
           iconPos="left"
           onClick={handleLogout}
+          className={isDarkMode ? "p-button-secondary" : "p-button-text"}
           style={{ '--pi-button-icon-margin': '0 12px 0 0' }}
         />
       </div>

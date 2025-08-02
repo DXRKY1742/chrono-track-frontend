@@ -20,6 +20,10 @@ export function AuthCard({ mode = "login" }) {
   // Dispatch 
   const dispatch = useDispatch();
 
+  // ----- Theme -----
+  const currentTheme = useSelector((state) => state.theme.currentTheme);
+  const isDark = currentTheme === "arya-blue";
+
   // Selectors
   const loading = useSelector(state => state.auth.loading);
   const error = useSelector(state => state.auth.error);
@@ -60,10 +64,11 @@ export function AuthCard({ mode = "login" }) {
       <Card className="w-full sm:w-96 shadow-4 p-5 rounded-xl">
         <div className="flex flex-col gap-4">
           <img
-            src="../../../LogoBlueOverWhite.png"
+            src={isDark ? "../../../LogoWhite.png" : "../../../LogoBlueOverWhite.png"}
             className="w-40 self-center mt-4"
             alt="Logo"
           />
+
           <h1 className="self-center">
             {isRegister
               ? "Crea una cuenta en tu agenda inteligente"
@@ -182,7 +187,7 @@ export function AuthCard({ mode = "login" }) {
             <div className="flex justify-between text-sm">
               <NavLink
                 to="/login"
-                className="text-blue-600 hover:underline"
+                className={`${isDark ? "text-white" : "text-[#2979FF]"} hover:underline`}
               >
                 Volver al login
               </NavLink>
@@ -191,13 +196,15 @@ export function AuthCard({ mode = "login" }) {
             <div className="flex justify-between text-sm">
               <NavLink
                 to="/register"
-                className="text-blue-600 hover:underline"
+                // className="text-blue-600 hover:underline"
+                className={`${isDark ? "text-white" : "text-[#2979FF]"} hover:underline`}
               >
                 Crear cuenta
               </NavLink>
               <NavLink
                 to="/forgot-password"
-                className="text-blue-600 hover:underline"
+                // className="text-blue-600 hover:underline"
+                className={`${isDark ? "text-white" : "text-[#2979FF]"} hover:underline`}
               >
                 ¿Olvidaste tu contraseña?
               </NavLink>
@@ -206,7 +213,7 @@ export function AuthCard({ mode = "login" }) {
 
           <Button
             label={isRegister ? "Registrarse" : "Ingresar"}
-            className="w-40 self-center mt-2 bg-blue-600 text-white rounded-2xl p-2"
+            className={`${isDark ? "bg-gray-900" : "bg-[#2979FF]"} w-40 self-center mt-2 rounded-2xl p-2`}
             onClick={handleSubmit}
           />
         </div>

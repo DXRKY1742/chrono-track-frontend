@@ -2,6 +2,9 @@
 import React, {useEffect, useState} from "react";
 import { useNavigate } from 'react-router-dom';
 
+// Redux
+import { useSelector } from "react-redux";
+
 // Primereact
 import { Card } from "primereact/card";
 import { Chart } from "primereact/chart";
@@ -10,8 +13,13 @@ import { Chart } from "primereact/chart";
 import taskService from "../../../services/tasksService";
 
 export default function Home() {
-
   // Pending: Redirect a activities
+
+  // ----- Theme -----
+  const currentTheme = useSelector((state) => state.theme.currentTheme);
+  const isDark = currentTheme === "arya-blue";
+  const cardBgClass = isDark ? "bg-gray-900" : "bg-gray-200";
+
   // ----- UseStates -----
   // Activities / Tasks
   const [pendingActivities, setPendingActivities] = useState([])
@@ -59,10 +67,9 @@ export default function Home() {
       case 3:
         navigate('/dashboard/settings');
         break;
-      // PENDING: activity redirect con agenda
-      // case 4:
-      //   navigate('/dashboard/profile');
-      //   break;
+      case 4:
+        navigate('/dashboard/profile');
+        break;
       default:
         console.warn('Índice no válido');
         break;
@@ -101,16 +108,16 @@ export default function Home() {
           },
         ],
       };
-
+  
 
   // agregar {isLoading ? () : <progressSpinner/>}
   return (
-    <div className="bg-gray-50 min-h-screen p-8">
+    <div className="min-h-screen p-8">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Estadísticas */}
-          <Card onClick={() => redirectTo(1)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
-            <div className="text-gray-400 font-semibold mb-2 text-lg">Estadísticas</div>
+          <Card onClick={() => redirectTo(1)} className={`${cardBgClass} rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none cursor-pointer`}>
+            <div className=" font-semibold mb-2 text-lg">Estadísticas</div>
             <div className="flex-grow flex justify-center items-center">
               <div className="w-[180px] h-[180px] flex justify-center items-center">
                 <Chart
@@ -124,17 +131,17 @@ export default function Home() {
           </Card>
 
           {/* Actividades para hoy */}
-          <Card className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] shadow-none border-none">
-            <div className="text-gray-400 font-semibold mb-2 text-lg">Actividades pendientes</div>
+          <Card className={`${cardBgClass} rounded-2xl p-6 flex flex-col min-h-[300px] shadow-none border-none cursor-pointer`}>
+            <div className=" font-semibold mb-2 text-lg">Actividades pendientes</div>
             <div className="flex-grow flex flex-col justify-center overflow-auto max-h-[300px]">
               {loading ? (
-                <div className="text-center text-gray-600">Cargando...</div>
+                <div className="text-center">Cargando...</div>
               ) : pendingActivities.length === 0 ? (
-                <div className="text-center text-gray-600">No hay actividades pendientes</div>
+                <div className="text-center">No hay actividades pendientes</div>
               ) : (
-                <ul className="list-none p-0 m-0 space-y-2">
+                <ul className="list-none p-0 m-0 space-y-2 ">
                   {pendingActivities.map((actividad) => (
-                    <li key={actividad.id} className="border-b border-gray-300 py-2 text-gray-700 text-base">
+                    <li key={actividad.id} className="border-b  py-2 text-base">
                       {actividad.title}
                     </li>
                   ))}
@@ -144,18 +151,18 @@ export default function Home() {
           </Card>
               
           {/* Ajustes */}
-          <Card onClick={() => redirectTo(3)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
-            <div className="text-gray-400 font-semibold mb-2 text-lg">Ajustes</div>
+          <Card onClick={() => redirectTo(3)} className={`${cardBgClass} rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none cursor-pointer`}>
+            <div className="font-semibold mb-2 text-lg">Ajustes</div>
             <div className="flex-grow flex justify-center items-center">
-              <i className="pi pi-user text-[100px] text-gray-400" style={{ fontWeight: 100 }}></i>
+              <i className="pi pi-user text-[100px]" style={{ fontWeight: 100 }}></i>
             </div>
           </Card>
 
           {/* Agendas */}
-          <Card onClick={() => redirectTo(2)} className="bg-gray-200 rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none">
-            <div className="text-gray-400 font-semibold mb-2 text-lg">Agendas</div>
+          <Card onClick={() => redirectTo(2)} className={`${cardBgClass} rounded-2xl p-6 flex flex-col min-h-[300px] transition-transform transform hover:scale-[1.02] shadow-none border-none cursor-pointer`}>
+            <div className="font-semibold mb-2 text-lg">Agendas</div>
             <div className="flex-grow flex justify-center items-center">
-              <i className="pi pi-book text-[100px] text-gray-400" style={{ fontWeight: 100 }}></i>
+              <i className="pi pi-book text-[100px]" style={{ fontWeight: 100 }}></i>
             </div>
           </Card>
         </div>
