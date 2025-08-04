@@ -1,18 +1,21 @@
 'use client'
 
 // React
-import React, {useEffect, useState} from "react"
+import React, {useEffect, useState, useRef} from "react"
 
 // Primereact
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
+import { Toast } from 'primereact/toast';
 import 'primeicons/primeicons.css';
           
 // Services
 import agendaService from "../../services/agendaService";
 
 const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
-    
+    // ----- Toast -----
+    const toastRef = useRef(null);
+    const toast = createToastService(toastRef);
     // ----- States ------
     // Input values
     const [name, setName] = useState('')
@@ -46,7 +49,7 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
           setDescription('');
           onHide();
         } catch (error) {
-            console.error('Error al crear la agenda:', error);
+            toast.showError('Error: ', error)
         } finally {
             setLoading(false);
         }
@@ -65,6 +68,7 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
       onHide={handleCancel}
       style={{ width: '30rem' }}
     >
+      <Toast ref={toastRef} />
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <ProgressSpinner />

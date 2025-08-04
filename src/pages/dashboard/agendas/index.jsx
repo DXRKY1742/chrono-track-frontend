@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Redux
@@ -10,14 +10,19 @@ import { useSelector } from "react-redux";
 // Primereact
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
+import { Toast } from 'primereact/toast';
       
 // Services
 import agendaService from "../../../services/agendaService";
 
 // Components
 import AgendaDialog from "../../../components/dialogs/AgendaDialog";
+import {createToastService} from "../../../components/toast/createToastService";
 
 export default function Agendas() {
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- Theme -----
     const currentTheme = useSelector((state) => state.theme.currentTheme);
     const isDark = currentTheme === "arya-blue";
@@ -41,7 +46,7 @@ export default function Agendas() {
       const requestResult = await agendaService.fetchAgendas()
       setAgendas(requestResult || []);
     } catch (error) {
-      console.error("Error cargando las agendas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -58,7 +63,7 @@ export default function Agendas() {
       setAgendas((prev) => prev.filter((a) => a.id !== agendaId));
       fetchAgendas();
     } catch (error) {
-      console.error("Error borrando la agenda:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -66,6 +71,7 @@ export default function Agendas() {
 
   return (
     <div className="p-6 min-h-screen">
+      <Toast ref={toastRef} />
       <AgendaDialog 
         visible={showDialog} 
         onHide={() => setShowDialog(false)} 

@@ -1,5 +1,5 @@
 // React
-import React, {useEffect, useState} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // Redux
@@ -8,14 +8,21 @@ import { useSelector } from "react-redux";
 // Primereact
 import { Card } from "primereact/card";
 import { Chart } from "primereact/chart";
+import { Toast } from 'primereact/toast';
 
 // Services
 import taskService from "../../../services/tasksService";
+
+// Components
+import {createToastService} from "../../../components/toast/createToastService";
 
 export default function Home() {
   const location = useLocation();
   const { agendaId, agendaName } = location.state || {};
 
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
   const isDark = currentTheme === "arya-blue";
@@ -55,7 +62,7 @@ export default function Home() {
         setCompletedActivities(completed);
         setDueTodayActivities(dueToday);
       } catch (error) {
-        console.error("Error cargando las tareas:", error);
+        toast.showError()
       } finally {
         setLoading(false);
       }
@@ -122,6 +129,7 @@ export default function Home() {
   // agregar {isLoading ? () : <progressSpinner/>}
   return (
     <div className="min-h-screen p-8">
+      <Toast ref={toastRef} />
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* Estadísticas */}

@@ -1,5 +1,5 @@
 // React
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useNavigate } from "react-router-dom";
 
 // Redux
@@ -10,6 +10,7 @@ import { Card } from 'primereact/card';
 import { Chart } from 'primereact/chart';
 import { Button } from 'primereact/button';
 import { SelectButton } from 'primereact/selectbutton';
+import { Toast } from 'primereact/toast';
 
 // Services
 import agendaService from '../../../services/agendaService';
@@ -17,8 +18,12 @@ import taskService from '../../../services/tasksService';
 
 // Components
 import BarChart from './utils/barChart';
+import {createToastService} from "../../../components/toast/createToastService";
 
 export default function Statistics() {
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
   const isDark = currentTheme === "arya-blue";
@@ -61,7 +66,7 @@ export default function Statistics() {
       const res = await agendaService.fetchAgendas();
       setAgendas(res || []);
     } catch (error) {
-      console.error("Error cargando las agendas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -78,7 +83,7 @@ export default function Statistics() {
         return 0;
       }));
     } catch (error) {
-      console.error("Error cargando las tareas asignadas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -95,7 +100,7 @@ export default function Statistics() {
       const mergedTasks = allTasks.flat();
       setTasks(mergedTasks);
     } catch (error) {
-      console.error("Error cargando las tareas globales:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -138,6 +143,7 @@ export default function Statistics() {
 
   return (
     <div className="p-6 min-h-screen">
+      <Toast ref={toastRef} />
       <h1 className="text-3xl font-bold mb-6">Estadísticas</h1>
       
       {/* Fila superior - Gráfico de barras + My Agendas */}

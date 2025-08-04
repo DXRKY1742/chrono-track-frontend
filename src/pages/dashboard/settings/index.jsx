@@ -1,5 +1,5 @@
 // React
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 // Primereact
 import { Card } from "primereact/card";
@@ -8,15 +8,21 @@ import { InputText } from "primereact/inputtext";
 import { InputSwitch } from "primereact/inputswitch";
 import { RadioButton } from "primereact/radiobutton";
 import { Dropdown } from "primereact/dropdown";
+import { Toast } from 'primereact/toast';
 import './settings.css';
 
 // Redux
 import { useDispatch, useSelector } from 'react-redux';
 import {logout} from '../../../features/authSlice'
 
+// Components
+import {createToastService} from "../../../components/toast/createToastService";
 
 export default function Settings() {
   const navigate = useNavigate();
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- Dispatch ----- 
   const dispatch = useDispatch();
   // ----- Selectors -----
@@ -34,9 +40,7 @@ export default function Settings() {
   const [confirmPass, setConfirmPass] = useState("");
 
   const languages = [
-    { name: "Español", code: "es" },
-    { name: "English", code: "en" },
-    { name: "Français", code: "fr" },
+    { name: "Español", code: "es" }
   ];
 
   const handleLogout = () => {
@@ -46,6 +50,7 @@ export default function Settings() {
 
   return (
     <div className="p-6 min-h-screen">
+      <Toast ref={toastRef} />
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-6">Ajustes</h1>
         <div className="flex flex-col lg:flex-row gap-6">

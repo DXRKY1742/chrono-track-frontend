@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 
 // Redux
@@ -10,15 +10,19 @@ import { useSelector } from "react-redux";
 // Primereact
 import { Calendar } from 'primereact/calendar';
 import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
 
 // Components
 import AddActivityDialog from "../../../../components/dialogs/AddActivityDialog";
+import {createToastService} from "../../../components/toast/createToastService";
 
 // Services 
 import taskService from "../../../../services/tasksService";
 
 function AddActivitiesView() {
- 
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- Params -----
   const location = useLocation();
   const { agendaId, agendaName } = location.state || {};
@@ -49,7 +53,7 @@ function AddActivitiesView() {
       const res = await taskService.fetchAssigned();
       setTasks(res)
     } catch (error) {
-      console.error("Error cargando las tareas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -59,6 +63,7 @@ function AddActivitiesView() {
 
   return (
     <div className="p-6 min-h-screen">
+      <Toast ref={toastRef} />
       <AddActivityDialog 
         visible={showDialog} 
         onHide={() => {

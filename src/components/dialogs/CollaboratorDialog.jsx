@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 
 // Redux
 import { useSelector } from "react-redux";
@@ -11,6 +11,7 @@ import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import { Button } from 'primereact/button';
 import { Dropdown } from "primereact/dropdown";
+import { Toast } from 'primereact/toast';
 import 'primeicons/primeicons.css';
 
 // Services
@@ -18,6 +19,8 @@ import agendaService from "../../services/agendaService";
 import userService from "../../services/userService";
 import collaboratorService from "../../services/collaboratorService"
 
+// Components
+import {createToastService} from "../../../components/toast/createToastService";
 
 
 const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeCollaborators, mode, collaboratorToEdit }) => {
@@ -35,6 +38,9 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
     { label: 'Colaborador', value: CollaboratorRol.WORKER }
   ];
 
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- States ------
   // Entities
   const [collaborators, setCollaborators] = useState([]);
@@ -66,7 +72,7 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
         }
         setCollaborators(filtered);
       } catch (error) {
-        console.error('Error obtener colaboradores:', error);
+        toast.showError('Error: ', error)
       } finally {
         setLoading(false);
       }
@@ -89,7 +95,7 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
 
       onHide();
     } catch (error) {
-      console.error('Error al guardar colaborador:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -113,6 +119,7 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
       style={{ width: '30rem', borderRadius: '1rem' }} 
       contentClassName="p-2"
     >
+      <Toast ref={toastRef} />
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <ProgressSpinner />

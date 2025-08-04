@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 // Redux
@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 // PrimeReact
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
+import { Toast } from "primereact/toast";
 
 // Services 
 import agendaService from "../../../../services/agendaService";
@@ -17,8 +18,13 @@ import agendaService from "../../../../services/agendaService";
 // Components
 import ActivityDialog from "../../../../components/dialogs/ActivityDialog";
 import CollaboratorDialog from "../../../../components/dialogs/CollaboratorDialog"
+import {createToastService} from "../../../components/toast/createToastService";
 
 function AgendaView() {
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
+
   // ----- Params -----
   const location = useLocation();
   const { agendaId, agendaName } = location.state || {};
@@ -95,7 +101,7 @@ function AgendaView() {
       setCompletedActivities(completed);
       setPendingActivities(pending)
     } catch (error) {
-      console.error("Error cargando las agendas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -104,10 +110,9 @@ function AgendaView() {
     try {
       setLoading(true);
       const res = await agendaService.fetchCollaboratorsByAgendaId(agendaId);
-      console.log("Colaboradores activos recibidos:", res);
       setActiveCollaborators(res)
     } catch (error) {
-      console.error("Error cargando las agendas:", error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -150,6 +155,7 @@ function AgendaView() {
 
  return (
     <div className="p-6 min-h-screen">
+      <Toast ref={toastRef} />
       {/* Header */}
       <ActivityDialog 
         visible={showActivityDialog} 

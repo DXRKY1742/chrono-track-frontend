@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 
 // Primereact
 import { Dialog } from 'primereact/dialog';
@@ -11,12 +11,16 @@ import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Button } from "primereact/button";
+import { Toast } from "primereact/toast";
 import 'primeicons/primeicons.css';
 
 // Services
 import agendaService from "../../services/agendaService";
 import userService from "../../services/userService";
 import categoryService from "../../services/categoryService";
+
+// Components
+import {createToastService} from "../../../components/toast/createToastService";
 
 const priorities = [
   { label: 'Alta', value: 'h' },
@@ -25,6 +29,9 @@ const priorities = [
 ];
 
 const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => {
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- States ------
   // Entities
   const [collaborators, setCollaborators] = useState([]);
@@ -57,7 +64,7 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
       const response = await userService.fetchUsers();
       setCollaborators(response)
     } catch (error) {
-      console.error('Error obtener collaboradores:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -69,7 +76,7 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
       const response = await categoryService.fetchCategory();
       setCategories(response)
     } catch (error) {
-      console.error('Error al obtener categorias:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -91,9 +98,10 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
       };
 
       await agendaService.postTaskToAgenda(agendaId, payload);
+      toast.showSuccess('Actividad creada exitosamente')
       onHide();
     } catch (error) {
-      console.error('Error al crear la actividad:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -121,6 +129,7 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
       onHide={handleCancel}
       style={{ width: '35rem' }}
     >
+      <Toast ref={toastRef} />
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <ProgressSpinner />

@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 
 // Primereact
 import { Dialog } from 'primereact/dialog';
@@ -12,12 +12,16 @@ import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from 'primereact/button';
 import { Checkbox } from "primereact/checkbox";
+import { Toast } from "primereact/toast";
 import 'primeicons/primeicons.css';
 
 // Services
 import taskService from "../../services/tasksService";
 import userService from "../../services/userService";
 import categoryService from "../../services/categoryService";
+
+// Components
+import {createToastService} from "../../../components/toast/createToastService";
 
 const priorities = [
   { label: 'Alta', value: 'h' },
@@ -26,7 +30,9 @@ const priorities = [
 ];
 
 const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) => {
-
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // ----- States ------
   // Entities
   const [collaborators, setCollaborators] = useState([]);
@@ -73,7 +79,7 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       const response = await userService.fetchUsers();
       setCollaborators(response)
     } catch (error) {
-      console.error('Error obtener collaboradores:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -89,7 +95,7 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       const response = await categoryService.fetchCategory();
       setCategories(response)
     } catch (error) {
-      console.error('Error al obtener categorias:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -110,8 +116,9 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       await taskService.patchTask(activityToEdit.id, updatedActivity);
       onActivitySaved();
       onHide();
+      toast.showSuccess('Actualizado')
     } catch (error) {
-      console.error('Error al actualizar la actividad:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -123,9 +130,10 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
     try {
       await taskService.patchTask(activityToEdit.id, { state: 'c', completedDate: new Date() });
       onActivitySaved(); 
-      onHide();           
+      onHide();          
+      toast.showSuccess('Actualizado') 
     } catch (error) {
-      console.error('Error al marcar como completado:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -137,8 +145,9 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
     try {
       await taskService.patchTask(localActivity.id, { state: newState });
       setLocalActivity({ ...localActivity, state: newState });
+      toast.showSuccess('Actualizado')
     } catch (error) {
-      console.error('Error al cambiar estado:', error);
+      toast.showError('Error: ', error)
     } finally {
       setLoading(false);
     }
@@ -166,6 +175,7 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       style={{ width: '30rem', borderRadius: '1rem' }} 
       contentClassName="p-2"
     >
+      <Toast ref={toastRef} />
       {loading ? (
         <div className="flex justify-center items-center h-32">
           <ProgressSpinner />
