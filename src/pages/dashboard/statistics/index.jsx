@@ -45,19 +45,14 @@ export default function Statistics() {
   //----- Dataloading -----
   useEffect(() => {
     fetchAgendas();
+    fetchAssignedTasks();
   }, []);
 
   useEffect(() => {
     if (agendas.length > 0) {
       fetchGlobalTasks();
-      fetchAssignedTasks();
     }
   }, [agendas]);
-
-
-   useEffect(() => {
-    console.log(tasks)
-  }, [tasks])
 
   //----- Functions -----
   async function fetchAgendas() {
@@ -76,6 +71,7 @@ export default function Statistics() {
     try {
       setLoading(true);
       const res = await taskService.fetchAssigned();
+      console.log(res)
       setAssignedTasks((res || []).sort((a, b) => {
         if (a.state === 'c' && b.state !== 'c') return 1;
         if (a.state !== 'c' && b.state === 'c') return -1;
@@ -117,7 +113,7 @@ export default function Statistics() {
 
   const pieChartData = useMemo(() => {
     const categoryCount = {};
-    const pendingTasks = tasks.filter(task => task.state === 'a');
+    const pendingTasks = assignedTasks.filter(task => task.state === 'a');
     pendingTasks.forEach(task => {
       const agenda = task.agenda || 'Unknown';
       categoryCount[agenda] = (categoryCount[agenda] || 0) + 1;
@@ -136,7 +132,7 @@ export default function Statistics() {
         },
       ],
     };
-  }, [tasks]);
+  }, [assignedTasks]);
 
 
 

@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 
 // Redux
@@ -31,28 +31,29 @@ function AddActivitiesView() {
   // Activities / Tasks
   const [tasks, setTasks] = useState([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const selectedDateString = selectedDate.toISOString().split('T')[0];
+  const selectedDateString = useMemo(() => {
+    return selectedDate.toISOString().split("T")[0];
+  }, [selectedDate]);
   
   // Miscellaneous
   const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
 
   useEffect(() => {
-    async function fetchTasks() {
-      try {
-        setLoading(true);
-        const res = await taskService.fetchAssigned();
-        console.log(res)
-        setTasks(res)
-      } catch (error) {
-        console.error("Error cargando las tareas:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     fetchTasks();
   }, []);
+
+  async function fetchTasks() {
+    try {
+      setLoading(true);
+      const res = await taskService.fetchAssigned();
+      setTasks(res)
+    } catch (error) {
+      console.error("Error cargando las tareas:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   if (loading) return <p>Cargando actividades...</p>;
 
@@ -60,7 +61,10 @@ function AddActivitiesView() {
     <div className="p-6 min-h-screen">
       <AddActivityDialog 
         visible={showDialog} 
-        onHide={() => setShowDialog(false)}
+        onHide={() => {
+          setShowDialog(false);
+          fetchTasks();
+        }}
         agendaId={agendaId} 
         suggestedInitDate={selectedDate}
       />
@@ -90,7 +94,7 @@ function AddActivitiesView() {
           />
         </div>
         {/* Activity Card */}
-        <div className="border p-4 rounded-lg w-[30%] shadow mt-4 m:mt-0">
+        <div className="border p-4 rounded-lg w-[300px] shadow mt-4 m:mt-0">
           <h3 className="font-semibold mb-2">
             {selectedDate.toLocaleDateString("es-MX", {
               day: "2-digit",
@@ -99,13 +103,16 @@ function AddActivitiesView() {
             })}
           </h3>
         
-          {tasks.filter(task => task.initDate === selectedDateString).map(task => (
-            <div key={task.id} className="mb-2 p-2 rounded shadow-sm">
-              <h4 className="font-bold">{task.title}</h4>
-              <p className="text-sm">{task.description}</p>
-              <p className="text-xs">Asignado a: {task.userAssigned}</p>
-            </div>
-          ))}
+          <ul>
+            {tasks
+              .filter(task => task.initDate === selectedDateString)
+              .map(task => (
+                <li key={task.id}>
+                  <h4 className="font-bold">{task.title}: {task.description}</h4>
+                  <p className="text-xs text-gray-500">Asignado a: {task.userAssigned}</p>
+                </li>
+              ))}
+          </ul>
           {tasks.filter(task => task.initDate === selectedDateString).length === 0 && (
             <p className="text-gray-500">No hay actividades para esta fecha.</p>
           )}

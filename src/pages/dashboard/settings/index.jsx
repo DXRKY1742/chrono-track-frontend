@@ -1,6 +1,6 @@
 // React
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 // Primereact
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
@@ -16,6 +16,7 @@ import {logout} from '../../../features/authSlice'
 
 
 export default function Settings() {
+  const navigate = useNavigate();
   // ----- Dispatch ----- 
   const dispatch = useDispatch();
   // ----- Selectors -----

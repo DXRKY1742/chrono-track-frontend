@@ -11,6 +11,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from "primereact/calendar";
 import { Dropdown } from "primereact/dropdown";
 import { Button } from 'primereact/button';
+import { Checkbox } from "primereact/checkbox";
 import 'primeicons/primeicons.css';
 
 // Services
@@ -38,12 +39,12 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
   const [priority, setPriority] = useState('m');
   const [userAssignedId, setUserAssignedId] = useState(null);
   const [categoryId, setCategoryId] = useState(null);
+  const [localActivity, setLocalActivity] = useState(activityToEdit); 
   // Miscelaneous
   const [loading, setLoading] = useState(false);
 
   // ----- useEffect -----
   useEffect(() => {
-    console.log(activityToEdit)
     if (activityToEdit) {
       setTitle(activityToEdit.title || '');
       setDescription(activityToEdit.description || '');
@@ -78,6 +79,10 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
     }
   };
   
+  useEffect(() => {
+    setLocalActivity(activityToEdit);
+  }, [activityToEdit]);
+
   const fetchCategories = async () => {
     setLoading(true)
     try {
@@ -126,6 +131,18 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
     }
   };
 
+  const toggleInProgress = async (newState) => {
+    if (!localActivity) return;
+    setLoading(true);
+    try {
+      await taskService.patchTask(localActivity.id, { state: newState });
+      setLocalActivity({ ...localActivity, state: newState });
+    } catch (error) {
+      console.error('Error al cambiar estado:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleCancel = () => {
     onHide();
@@ -134,7 +151,7 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
   return (
     <Dialog
       header={
-        <div className="flex justify-between items-center m-4">
+        <div className="flex justify-between items-center m-4 space-x-4">
           <h2 className="text-lg font-semibold">Editar actividad</h2>
           <Button 
             label="Marcar completado" 
@@ -245,19 +262,48 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
           </div>
 
           {/* Botones */}
-          <div className="flex justify-end gap-4 mt-4">
-            <Button
-              label="Cancelar"
-              onClick={handleCancel}
-              className="p-button-secondary"
-            />
-            <Button
-              label="Actualizar"
-              onClick={handleSubmit}
-              disabled={!title || !description}
-              className={`px-4 py-2 rounded-md font-semibold text-white transition bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 ${!title || !description ? 'p-button-disabled' : ''}`}
-            />
+          <div className="flex justify-between items-center gap-4 mt-4 mb-4">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                inputId="stateToggle"
+                checked={localActivity?.state === 'p'}
+                onChange={(e) => {
+                  const newState = e.checked ? 'p' : 'a';
+                  toggleInProgress(newState);
+                }}
+                className="rounded"
+                style={{
+                  border: '1px solid #d1d5db', 
+                  borderRadius: '0.25rem',
+                  boxSizing: 'border-box',
+                }}
+              />
+              <label
+                htmlFor="stateToggle"
+                className="text-xs text-gray-700 cursor-pointer select-none"
+              >
+                En progreso
+              </label>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                label="Cancelar"
+                onClick={handleCancel}
+                className="px-3 py-1 text-sm rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300"
+              />
+              <Button
+                label="Actualizar"
+                onClick={handleSubmit}
+                disabled={!title || !description}
+                className={`px-4 py-1 text-sm rounded-md font-medium text-white transition border ${
+                  !title || !description
+                    ? 'bg-blue-300 border-blue-300 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700'
+                }`}
+              />
+            </div>
           </div>
+
         </div>
       )}
     </Dialog>

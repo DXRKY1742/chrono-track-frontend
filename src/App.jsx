@@ -18,7 +18,7 @@ import Home from "./pages/dashboard/home";
 import Statistics from "./pages/dashboard/statistics";
 import Agendas from "./pages/dashboard/agendas"
 import Settings from "./pages/dashboard/settings"
-import ActivitiesView from "./pages/dashboard/agendas/activitiesView";
+import AgendaView from "./pages/dashboard/agendas/agendaView";
 import AddActivitiesView from "./pages/dashboard/agendas/addActivities";
 
 import Login from "./pages/guestOnly/login";
@@ -80,7 +80,7 @@ export default function App() {
                 <Route path="home" element={<Home />} />
                 <Route path="statistics" element={<Statistics />} />
                 <Route path="agendas" element={<Agendas />} />
-                <Route path="agendas/:agendaId/activities" element={<ActivitiesView />} />
+                <Route path="agendas/:agendaId/activities" element={<AgendaView />} />
                 <Route path="agendas/:agendaId/activities/create" element={<AddActivitiesView />} />
                 <Route path="settings" element={<Settings />} />
               </Route>

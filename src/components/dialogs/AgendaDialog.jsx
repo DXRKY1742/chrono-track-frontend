@@ -6,16 +6,13 @@ import React, {useEffect, useState} from "react"
 // Primereact
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
-import { InputText } from 'primereact/inputtext';
-import { InputTextarea } from 'primereact/inputtextarea';
-import { Button } from 'primereact/button';
 import 'primeicons/primeicons.css';
           
 // Services
 import agendaService from "../../services/agendaService";
 
 const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
-
+    
     // ----- States ------
     // Input values
     const [name, setName] = useState('')
@@ -34,6 +31,7 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
         setDescription('');
       }
     }, [agendaToEdit, visible]);
+    
     // ----- Handlers -----
     const handleSubmit = async () => {
         setLoading(true);

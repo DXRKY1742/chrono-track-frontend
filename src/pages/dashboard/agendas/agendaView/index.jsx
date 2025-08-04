@@ -16,8 +16,9 @@ import agendaService from "../../../../services/agendaService";
 
 // Components
 import ActivityDialog from "../../../../components/dialogs/ActivityDialog";
+import CollaboratorDialog from "../../../../components/dialogs/CollaboratorDialog"
 
-function ActivitiesView() {
+function AgendaView() {
   // ----- Params -----
   const location = useLocation();
   const { agendaId, agendaName } = location.state || {};
@@ -27,6 +28,8 @@ function ActivitiesView() {
   const isDark = currentTheme === "arya-blue";
 
   // ----- States -----
+  const [activeCollaborators, setActiveCollaborators] = useState([]);
+  const [selectedCollaborator, setSelectedCollaborator] = useState();
   const [completedActivities, setCompletedActivities] = useState([]);
   const [pendingActivities, setPendingActivities] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +38,8 @@ function ActivitiesView() {
   const [pageSize, setPageSize] = useState(5);
 
   // Miscelaneous
-  const [showDialog, setShowDialog] = useState(false);
+  const [showActivityDialog, setShowActivityDialog] = useState(false);
+  const [showAddCollaboratorDialog, setShowAddCollaboratorDialog] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
   const navigate = useNavigate();
 
@@ -72,13 +76,13 @@ function ActivitiesView() {
   // ----- Effects -----
   useEffect(() => {
     fetchTasks();
+    fetchCollaborators();
   }, []);
 
   async function fetchTasks(){
     try {
       setLoading(true);
       const res = await agendaService.fetchTasksByAgendaId(agendaId);
-      console.log(res);
       const pending = []
       const completed = []
       res.forEach(item => {
@@ -96,10 +100,28 @@ function ActivitiesView() {
       setLoading(false);
     }
   }
+  async function fetchCollaborators(){
+    try {
+      setLoading(true);
+      const res = await agendaService.fetchCollaboratorsByAgendaId(agendaId);
+      console.log("Colaboradores activos recibidos:", res);
+      setActiveCollaborators(res)
+    } catch (error) {
+      console.error("Error cargando las agendas:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
   // ----- Row click handler -----
   function handleRowClick(activity) {
+    if (activity.state== 'c') return;
     setSelectedActivity(activity);
-    setShowDialog(true);
+    setShowActivityDialog(true);
+  }
+
+  function handleCollaboratorRowClick(collaborator) {
+    setSelectedCollaborator(collaborator);
+    setShowAddCollaboratorDialog(true);
   }
 
   function priorityBodyTemplate(rowData) {
@@ -111,10 +133,13 @@ function ActivitiesView() {
     }
   }
 
+  function openAddCollaboratorDialog(mode){
+    setShowAddCollaboratorDialog(true)
+  }
   function reloadActivities(){
     fetchTasks();
   }
-
+ 
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -127,16 +152,29 @@ function ActivitiesView() {
     <div className="p-6 min-h-screen">
       {/* Header */}
       <ActivityDialog 
-        visible={showDialog} 
+        visible={showActivityDialog} 
         onHide={() => {
-          setShowDialog(false);
+          setShowActivityDialog(false);
           setSelectedActivity(null);
         }} 
         onActivitySaved = {reloadActivities}
         activityToEdit = {selectedActivity}
       />
+      <CollaboratorDialog 
+        visible={showAddCollaboratorDialog} 
+        onHide={() => {
+          setShowAddCollaboratorDialog(false);
+          setSelectedCollaborator(null);
+        }} 
+        agendaId={agendaId}
+        agendaName={agendaName}
+        activeCollaborators={activeCollaborators}
+        mode={selectedCollaborator ? 'edit' : 'create'}
+        collaboratorToEdit={selectedCollaborator}
+      />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">{agendaName}</h1>
+        <div className="flex gap-2">
         <button 
           className={`${isDark 
             ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
@@ -148,8 +186,9 @@ function ActivitiesView() {
           })}
         >
           <i className="pi pi-plus m-2" />
-          Administrar
+          Agregar actividad
         </button>
+        </div>
       </div>
 
       {/* Tabla de actividades pendientes */}
@@ -215,8 +254,45 @@ function ActivitiesView() {
           </DataTable>
         </div>
       </div>
+      {/* Tabla de colaboradores activos */}
+      <div className="mt-12">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold mb-4">Colaboradores</h2>
+          <div className="flex gap-2">
+          <button 
+            className={`${isDark 
+              ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+              : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+              text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
+            }
+            onClick={() => openAddCollaboratorDialog('create')}
+          >
+            <i className="pi pi-plus m-2" />
+            Agregar colaborador
+          </button>
+          </div>
+        </div>
+        <div className="rounded-lg overflow-hidden border bg-white shadow">
+          <DataTable
+            value={activeCollaborators}
+            className="w-full text-m"
+            showGridlines
+            size="medium"
+            stripedRows
+            paginator
+            rows={5}
+            emptyMessage={
+              <div className="text-center py-6">No hay colaboradores activos</div>
+            }
+            onRowClick={(e) => handleCollaboratorRowClick(e.data)}
+          >
+            <Column field="user.name" header="Nombre" />
+            <Column field="rol" header="Rol" />
+          </DataTable>
+        </div>
+      </div>
     </div>
   );
 }
 
-export default ActivitiesView;
+export default AgendaView;

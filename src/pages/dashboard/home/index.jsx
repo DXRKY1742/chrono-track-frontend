@@ -1,6 +1,6 @@
 // React
 import React, {useEffect, useState} from "react";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // Redux
 import { useSelector } from "react-redux";
@@ -13,7 +13,8 @@ import { Chart } from "primereact/chart";
 import taskService from "../../../services/tasksService";
 
 export default function Home() {
-  // Pending: Redirect a activities
+  const location = useLocation();
+  const { agendaId, agendaName } = location.state || {};
 
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
@@ -78,9 +79,6 @@ export default function Home() {
       case 3:
         navigate('/dashboard/settings');
         break;
-      case 4:
-        navigate('/dashboard/profile');
-        break;
       default:
         console.warn('Índice no válido');
         break;
@@ -144,15 +142,23 @@ export default function Home() {
           {/* Actividades para hoy */}
           <Card className={`${cardBgClass} rounded-2xl p-6 flex flex-col min-h-[300px] shadow-none border-none cursor-pointer`}>
             <div className=" font-semibold mb-2 text-lg">Actividades pendientes</div>
-            <div className="flex-grow flex flex-col justify-center overflow-auto max-h-[300px]">
+            <div className="flex-grow flex flex-col justify-center max-h-[300px] overflow-hidden">
               {loading ? (
                 <div className="text-center">Cargando...</div>
               ) : pendingActivities.length === 0 ? (
                 <div className="text-center">No hay actividades pendientes</div>
               ) : (
-                <ul className="list-none p-0 m-0 space-y-2 ">
+                <ul className="list-none p-0 m-0 space-y-2">
                   {pendingActivities.map((actividad) => (
-                    <li key={actividad.id} className="border-b  py-2 text-base">
+                    <li 
+                      key={actividad.id} 
+                      className="border-b py-2 text-base transform scale-100 hover:border rounded"
+                      onClick={() => {
+                        navigate(`/dashboard/agendas/${actividad.agendaId}/activities`, {
+                          state: { agendaId: actividad.agendaId, agendaName: actividad.agenda }
+                        });
+                      }}
+                    >
                       {actividad.title}
                     </li>
                   ))}

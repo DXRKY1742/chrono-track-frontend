@@ -39,7 +39,6 @@ export default function Agendas() {
     try {
       setLoading(true);
       const requestResult = await agendaService.fetchAgendas()
-      console.log(requestResult)
       setAgendas(requestResult || []);
     } catch (error) {
       console.error("Error cargando las agendas:", error);
