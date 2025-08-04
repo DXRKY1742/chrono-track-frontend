@@ -7,8 +7,8 @@ const agendaService = {
   fetchCollaboratorsByAgendaId: (id) => baseService.getPaginated('agendas', `${id}/collaborators`, { page: 1, limit: 10}),
 
   postAgenda: (body) => baseService.post('agendas', body),
-  postTaskToAgenda: (id, body) => baseService.post('agendas', `${id}/tasks`, body),
-  postCollaboratorToAgenda: (id, body) => baseService.post('agendas', `${id}/collaborators`, body),
+  postTaskToAgenda: (id, body) => baseService.post(`agendas/${id}/tasks`, body),
+  postCollaboratorToAgenda: (id, body) => baseService.post(`agendas/${id}/collaborators`, body),
 
   patchAgenda: (id, body) => baseService.patch('agendas', `${id}`, body),
 

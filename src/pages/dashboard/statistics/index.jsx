@@ -1,5 +1,5 @@
 // React
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from "react-router-dom";
 
 // Redux
@@ -9,22 +9,19 @@ import { useSelector } from "react-redux";
 import { Card } from 'primereact/card';
 import { Chart } from 'primereact/chart';
 import { Button } from 'primereact/button';
+import { SelectButton } from 'primereact/selectbutton';
 
 // Services
 import agendaService from '../../../services/agendaService';
 import taskService from '../../../services/tasksService';
 
+// Components
+import BarChart from './utils/barChart';
+
 export default function Statistics() {
-
-  /* 
-    PENDING:
-        - Filter by dates
-  */
-
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
   const isDark = currentTheme === "arya-blue";
-  const emphasizeTextClass = isDark ? "text-blue-300" : "text-blue-700";
   const cardBgClass = isDark ? "bg-gray-900" : "bg-gray-200";
 
   // ----- States -----
@@ -32,12 +29,16 @@ export default function Statistics() {
   const [agendas, setAgendas] = useState([]);
   // Tasks
   const [tasks, setTasks] = useState([]);
-  const [assignedTasks, setAssignedTasks] = useState([])
-  const [pendingTasks, setPendingTasks] = useState([]);
-  const [inProgressTasks, setInProgressTasks] = useState([]);
-  const [completedTasks, setCompletedTasks] = useState([]);
+  const [assignedTasks, setAssignedTasks] = useState([]);
+  
   // Miscelaneous
   const [loading, setLoading] = useState(false);
+  const [value, setValue] = useState(2);
+  const items = [
+      { name: 'D', value: 1 },
+      { name: 'M', value: 2 },
+      { name: 'Y', value: 3 }
+  ];
   // Navigation
   const navigate = useNavigate();
   
@@ -47,10 +48,16 @@ export default function Statistics() {
   }, []);
 
   useEffect(() => {
-    console.log(assignedTasks)
-    fetchGlobalTasks();
-    fetchAssignedTasks();
-  }, [agendas])
+    if (agendas.length > 0) {
+      fetchGlobalTasks();
+      fetchAssignedTasks();
+    }
+  }, [agendas]);
+
+
+   useEffect(() => {
+    console.log(tasks)
+  }, [tasks])
 
   //----- Functions -----
   async function fetchAgendas() {
@@ -69,7 +76,11 @@ export default function Statistics() {
     try {
       setLoading(true);
       const res = await taskService.fetchAssigned();
-      setAssignedTasks(res || []);
+      setAssignedTasks((res || []).sort((a, b) => {
+        if (a.state === 'c' && b.state !== 'c') return 1;
+        if (a.state !== 'c' && b.state === 'c') return -1;
+        return 0;
+      }));
     } catch (error) {
       console.error("Error cargando las tareas asignadas:", error);
     } finally {
@@ -77,48 +88,23 @@ export default function Statistics() {
     }
   }
 
-  async function fetchGlobalTasks() {
+  const fetchGlobalTasks = async () => {
     try {
       setLoading(true);
-      const pendingTasks = [];
-      const inProgressTasks = [];
-      const completedTasks = [];
-
-      for (const agenda of agendas) {
-        const response = await agendaService.fetchTasksByAgendaId(agenda.id);
-        const tasks = response || [];
-        for (const task of tasks) {
-          const mappedTask = {
-            ...task,
-            agendaId: agenda.id,
-            agendaName: agenda.name,
-            stateLabel: stateMap[task.state]?.label || 'Unknown',
-            stateClass: stateMap[task.state]?.className || '',
-          };
-          switch (task.state) {
-            case 'a':
-              pendingTasks.push(mappedTask);
-              break;
-            case 'p':
-              inProgressTasks.push(mappedTask);
-              break;
-            case 'c':
-              completedTasks.push(mappedTask);
-              break;
-            default:
-              break;
-          }
-        }
-      }
-      setPendingTasks(pendingTasks);
-      setInProgressTasks(inProgressTasks);
-      setCompletedTasks(completedTasks);
+      const allTasks = await Promise.all(
+        agendas.map((agenda) =>
+          agendaService.fetchTasksByAgendaId(agenda.id)
+        )
+      );
+      const mergedTasks = allTasks.flat();
+      setTasks(mergedTasks);
     } catch (error) {
       console.error("Error cargando las tareas globales:", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
+
   // ----- Mapper -----
   const stateMap = {
     a: { label: 'Pending', className: 'bg-yellow-100 text-yellow-700' },
@@ -127,39 +113,18 @@ export default function Statistics() {
     x: { label: 'Canceled', className: 'bg-red-100 text-red-700' },
   };
 
-  // ----- Charts -----
+  // ----- Charts -----  
 
-  const barChartData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Pending',
-        backgroundColor: '#1F2937',
-        data: Array(12).fill(pendingTasks.length),
-      },
-      {
-        label: 'Progress',
-        backgroundColor: '#6B7280',
-        data: Array(12).fill(inProgressTasks.length),
-      },
-      {
-        label: 'Completed',
-        backgroundColor: '#3B82F6',
-        data: Array(12).fill(completedTasks.length),
-      },
-    ],
-  };
-
-  const pieChartData = (() => {
+  const pieChartData = useMemo(() => {
     const categoryCount = {};
+    const pendingTasks = tasks.filter(task => task.state === 'a');
     pendingTasks.forEach(task => {
-      const agenda = task.agendaName || 'Unknown';
+      const agenda = task.agenda || 'Unknown';
       categoryCount[agenda] = (categoryCount[agenda] || 0) + 1;
     });
-
     const labels = Object.keys(categoryCount);
     const data = Object.values(categoryCount);
-    const backgroundColor = ['#1F2937', '#60A5FA', '#4ADE80', '#93C5FD', '#F87171', '#FBBF24'];
+    const backgroundColor = ['#FACC15', '#3B82F6', '#10B981', '#60A5FA', '#F87171', '#FBBF24'];
 
     return {
       labels,
@@ -171,7 +136,9 @@ export default function Statistics() {
         },
       ],
     };
-  })();
+  }, [tasks]);
+
+
 
   return (
     <div className="p-6 min-h-screen">
@@ -183,7 +150,26 @@ export default function Statistics() {
         <Card className={`${cardBgClass} flex-1 lg:basis-[75%] rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-medium text-blue-600">Tasks report in range of date</h2>
+              <h2 className="text-lg font-medium text-blue-600">Global task report in range of date</h2>
+              <div className="flex justify-center w-full md:w-1/2 mx-auto my-6">
+                <SelectButton
+                  value={value}
+                  onChange={(e) => setValue(e.value)}
+                  optionLabel="name"
+                  options={items}
+                  className="w-50"
+                  pt={{
+                    root: {
+                      className: "inline-flex rounded overflow-hidden border border-cyan-600"
+                    },
+                    button: ({ context }) => ({
+                      className: `flex-1 text-center font-semibold py-2 px-4 text-sm ${!context.first ? 'border-l border-cyan-500' : ''}`
+                    })
+                  }}
+                />
+              </div>
+
+
               <div className="flex gap-4 text-sm">
                 <span className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-gray-800 rounded-full"></div> Pending
@@ -196,21 +182,8 @@ export default function Statistics() {
                 </span>
               </div>
             </div>
-            <div className="h-80">
-              <Chart type="bar" data={barChartData} options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }},
-                scales: {
-                  x: { stacked: true, grid: { display: false }},
-                  y: {
-                    stacked: true, beginAtZero: true,
-                    grid: { color: '#F3F4F6' },
-                    ticks: { color: '#9CA3AF' }
-                  }
-                },
-                elements: { bar: { borderWidth: 0 }}
-              }} />
+            <div>
+              <BarChart tasks={tasks} value={value} />
             </div>
           </div>
         </Card>
@@ -231,7 +204,9 @@ export default function Statistics() {
                       : "bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
                       text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4`
                     }
-                    onClick={() => navigate(`/dashboard/agendas/${agenda.id}/activities`)}
+                    onClick={() => navigate(`/dashboard/agendas/${agenda.id}/activities`, {
+                      state: { agendaId: agenda.id, agendaName: agenda.name }
+                    })}
                   />
                 </div>
               ))}
@@ -261,26 +236,28 @@ export default function Statistics() {
 
         {/* Tabla */}
         <Card className={`${cardBgClass} flex-1 lg:basis-[70%]  rounded-xl shadow-lg border-0 overflow-hidden`}>
-          <div className="p-6">
+          <div className="p-6 max-h-[400px] overflow-y-auto">
             <h2 className="text-lg font-semibold mb-4 text-blue-600">Tasks assigned to me</h2>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 text-sm font-medium">Creation date</th>
+                    <th className="text-left py-3 text-sm font-medium">Assigned by</th>
                     <th className="text-left py-3 text-sm font-medium">Initialized on</th>
                     <th className="text-left py-3 text-sm font-medium">Due date</th>
+                    <th className="text-left py-3 text-sm font-medium">Agenda</th>
                     <th className="text-left py-3 text-sm font-medium">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {assignedTasks.map((task, index) => {
+                  {assignedTasks.map((task) => {
                     const stateInfo = stateMap[task.state] || { label: 'Unknown', className: 'bg-gray-100 text-gray-700' };
                     return (
-                      <tr key={task.id} className={`border-b border-gray-100 ${index % 2 === 0 ? 'bg-gray-50/30' : 'bg-white'}`}>
-                        <td className="py-4 text-gray-800">{task.registerDate || 'N/A'}</td>
-                        <td className="py-4 text-gray-600">{task.initDate || '—'}</td>
-                        <td className="py-4 text-gray-600">{task.desiredDate || '—'}</td>
+                      <tr key={task.id} className={`border-b border-gray-100`}>
+                        <td className="py-4 ">{task.createdByUser || 'N/A'}</td>
+                        <td className="py-4 ">{task.initDate || '—'}</td>
+                        <td className="py-4 ">{task.desiredDate || '—'}</td>
+                        <td className="py-4 ">{task.agenda || 'N/A'}</td>
                         <td className="py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${stateInfo.className}`}>
                             {stateInfo.label}

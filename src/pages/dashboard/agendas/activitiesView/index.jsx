@@ -2,7 +2,7 @@
 
 // React
 import React, { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -19,7 +19,8 @@ import ActivityDialog from "../../../../components/dialogs/ActivityDialog";
 
 function ActivitiesView() {
   // ----- Params -----
-  const { agendaId } = useParams(); 
+  const location = useLocation();
+  const { agendaId, agendaName } = location.state || {};
 
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
@@ -39,19 +40,34 @@ function ActivitiesView() {
   const navigate = useNavigate();
 
   // Column definitions
-  const completedActivitiesColumns = [
-    { field: "id", header: "ID" },
+  const pendingActivitiesColumns = [
     { field: "title", header: "Nombre" },
     { field: "description", header: "Categoría" },
+    { field: "userAssigned", header: "Responsable" },
+    { field: "createdByUser", header: "Creador" },
+    { header: "Prioridad", body: priorityBodyTemplate },
+    { field: "desiredDate", header: "Fecha límite" }
+  ];
+
+  const completedActivitiesColumns = [
+    { field: "title", header: "Nombre" },
+    { field: "description", header: "Categoría" },
+    { field: "userAssigned", header: "Responsable" },
+    { field: "createdByUser", header: "Creador" },
+    { header: "Prioridad", body: priorityBodyTemplate },
     { field: "completedDate", header: "Fecha completada" }
   ];
 
-  const pendingActivitiesColumns = [
-    { field: "id", header: "ID" },
-    { field: "title", header: "Nombre" },
-    { field: "description", header: "Categoría" },
-    { field: "desiredDate", header: "Fecha límite" }
-  ];
+  function priorityBodyTemplate(rowData) {
+    console.log("Prioridad:", rowData.prority);
+    switch (rowData.prority) {
+      case 'h': return 'Alta';
+      case 'm': return 'Media';
+      case 'l': return 'Baja';
+      default: return '-';
+    }
+  }
+
 
   // ----- Effects -----
   useEffect(() => {
@@ -86,7 +102,18 @@ function ActivitiesView() {
     setShowDialog(true);
   }
 
-  function reloadActivities(){}
+  function priorityBodyTemplate(rowData) {
+    switch (rowData.priority) {
+      case 'h': return 'Alta';
+      case 'm': return 'Media';
+      case 'l': return 'Baja';
+      default: return '-';
+    }
+  }
+
+  function reloadActivities(){
+    fetchTasks();
+  }
 
   if (loading) {
     return (
@@ -109,17 +136,19 @@ function ActivitiesView() {
         activityToEdit = {selectedActivity}
       />
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Agenda {agendaId}</h1>
+        <h1 className="text-3xl font-bold">{agendaName}</h1>
         <button 
           className={`${isDark 
             ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
             : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
             text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
           }
-          onClick={() => navigate(`create`)}
+          onClick={() => navigate('create', {
+            state: { agendaId: agendaId, agendaName: agendaName }
+          })}
         >
-          <i className="pi pi-plus" />
-          Administrar actividades
+          <i className="pi pi-plus m-2" />
+          Administrar
         </button>
       </div>
 
@@ -143,8 +172,13 @@ function ActivitiesView() {
               <div className="text-center py-6">No hay actividades disponibles</div>
             }
           >
-            {pendingActivitiesColumns.map(col => (
-              <Column key={col.field} field={col.field} header={col.header} />
+            {pendingActivitiesColumns.map((col, index) => (
+              <Column 
+                key={col.field || index}
+                field={col.field}
+                header={col.header}
+                body={col.body}
+              />
             ))}
           </DataTable>
         </div>
@@ -153,7 +187,7 @@ function ActivitiesView() {
       {/* Tabla de actividades completadas */}
       <div>
         <h2 className="text-2xl font-semibold mb-4">Actividades completadas</h2>
-        <div className="rounded-lg overflow-hidden border border-gray-300 bg-white shadow">
+        <div className="rounded-lg overflow-hidden border bg-white shadow">
           <DataTable
             value={completedActivities.slice(pageIndexCompleted * pageSize, (pageIndexCompleted + 1) * pageSize)}
             className="w-full text-m"
@@ -170,8 +204,13 @@ function ActivitiesView() {
               <div className="text-center py-6">No hay actividades disponibles</div>
             }
           >
-            {completedActivitiesColumns.map(col => (
-              <Column key={col.field} field={col.field} header={col.header} />
+            {completedActivitiesColumns.map((col, index) => (
+              <Column 
+                key={col.field || index}
+                field={col.field}
+                header={col.header}
+                body={col.body}
+              />
             ))}
           </DataTable>
         </div>

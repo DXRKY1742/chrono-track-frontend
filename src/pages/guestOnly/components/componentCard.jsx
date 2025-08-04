@@ -213,7 +213,7 @@ export function AuthCard({ mode = "login" }) {
 
           <Button
             label={isRegister ? "Registrarse" : "Ingresar"}
-            className={`${isDark ? "bg-gray-900" : "bg-[#2979FF]"} w-40 self-center mt-2 rounded-2xl p-2`}
+            className={`${isDark ? "bg-gray-900" : "bg-[#2979FF] text-white"} w-40 self-center mt-2 rounded-2xl p-2`}
             onClick={handleSubmit}
           />
         </div>

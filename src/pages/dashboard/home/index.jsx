@@ -34,24 +34,35 @@ export default function Home() {
     async function fetchTasks() {
       try {
         setLoading(true);
-        const [pendingRes, progressRes, completedRes, dueTodayRes] = await Promise.all([
-          taskService.fetchAssignedPending(),
-          taskService.fetchAssignedProgress(),
-          taskService.fetchAssignedCompleted(),
-          taskService.fetchAssignedDueToday(),
-        ]);
-        setPendingActivities(pendingRes || []);
-        setInProgressActivities(progressRes || []);
-        setCompletedActivities(completedRes || []);
-        setDueTodayActivities(dueTodayRes || []);
+        const res = await taskService.fetchAssigned();
+        const now = new Date().toISOString().split('T')[0]; // yyyy-mm-dd
+        
+        const pending = [];
+        const inProgress = [];
+        const completed = [];
+        const dueToday = [];
+
+        (res || []).forEach(task => {
+          if (task.state === 'a') pending.push(task);
+          if (task.state === 'p') inProgress.push(task);
+          if (task.state === 'c') completed.push(task);
+          if (task.desiredDate && task.desiredDate.startsWith(now)) dueToday.push(task);
+        });
+
+        setPendingActivities(pending);
+        setInProgressActivities(inProgress);
+        setCompletedActivities(completed);
+        setDueTodayActivities(dueToday);
       } catch (error) {
         console.error("Error cargando las tareas:", error);
       } finally {
         setLoading(false);
       }
     }
+
     fetchTasks();
   }, []);
+
 
   //----- Navigation -----
   const navigate = useNavigate();

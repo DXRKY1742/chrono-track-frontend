@@ -2,7 +2,7 @@
 
 // React
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 
 // Redux
 import { useSelector } from "react-redux";
@@ -10,17 +10,18 @@ import { useSelector } from "react-redux";
 // Primereact
 import { Calendar } from 'primereact/calendar';
 import { Button } from "primereact/button";
-        
-// Services 
-import taskService from "../../../../services/tasksService";
 
 // Components
 import AddActivityDialog from "../../../../components/dialogs/AddActivityDialog";
 
+// Services 
+import taskService from "../../../../services/tasksService";
+
 function AddActivitiesView() {
  
   // ----- Params -----
-  const { agendaId } = useParams(); 
+  const location = useLocation();
+  const { agendaId, agendaName } = location.state || {};
 
   // ----- Theme -----
   const currentTheme = useSelector((state) => state.theme.currentTheme);
@@ -28,11 +29,30 @@ function AddActivitiesView() {
   
   // ----- States -----
   // Activities / Tasks
-  const [selectedDate, setSelectedDate] = useState(new Date())
-
-  // Miscelaneous
-  const [loading, setLoading] = useState(false) 
+  const [tasks, setTasks] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const selectedDateString = selectedDate.toISOString().split('T')[0];
+  
+  // Miscellaneous
+  const [loading, setLoading] = useState(false);
   const [showDialog, setShowDialog] = useState(false);
+
+  useEffect(() => {
+    async function fetchTasks() {
+      try {
+        setLoading(true);
+        const res = await taskService.fetchAssigned();
+        console.log(res)
+        setTasks(res)
+      } catch (error) {
+        console.error("Error cargando las tareas:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchTasks();
+  }, []);
 
   if (loading) return <p>Cargando actividades...</p>;
 
@@ -41,10 +61,11 @@ function AddActivitiesView() {
       <AddActivityDialog 
         visible={showDialog} 
         onHide={() => setShowDialog(false)}
-        agendaId = {agendaId} 
+        agendaId={agendaId} 
+        suggestedInitDate={selectedDate}
       />
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold mb-6">Añadir actividades para agenda {agendaId}</h1>
+        <h1 className="text-3xl font-bold mb-6">Añadir actividades para {agendaName}</h1>
         <Button 
           label="Nueva actividad" 
           icon="pi pi-plus" 
@@ -57,18 +78,19 @@ function AddActivitiesView() {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between mt-10">
-        <div className="scale-[1.3] origin-top-left rounded-lg">
+      <div className="flex flex-col justify-self-center sm:flex-row flex-wrap gap-8 items-start mt-10">
+        {/* Calendario */}
+        <div className="rounded-lg">
           <Calendar
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.value)}
             inline
             showWeek
-            className="w-[500px]"
+            className="w-[500px] text-[1.05rem]"
           />
         </div>
-        {/* Corregir: Se pone por debajo del calendar */}
-        <div className="border p-4 rounded-lg w-[250px] shadow mt-4 m:mt-0">
+        {/* Activity Card */}
+        <div className="border p-4 rounded-lg w-[30%] shadow mt-4 m:mt-0">
           <h3 className="font-semibold mb-2">
             {selectedDate.toLocaleDateString("es-MX", {
               day: "2-digit",
@@ -76,10 +98,19 @@ function AddActivitiesView() {
               year: "numeric",
             })}
           </h3>
-          <p className="text-gray-500 text-sm">No tienes actividades en esta fecha</p>
+        
+          {tasks.filter(task => task.initDate === selectedDateString).map(task => (
+            <div key={task.id} className="mb-2 p-2 rounded shadow-sm">
+              <h4 className="font-bold">{task.title}</h4>
+              <p className="text-sm">{task.description}</p>
+              <p className="text-xs">Asignado a: {task.userAssigned}</p>
+            </div>
+          ))}
+          {tasks.filter(task => task.initDate === selectedDateString).length === 0 && (
+            <p className="text-gray-500">No hay actividades para esta fecha.</p>
+          )}
         </div>
       </div>
-
     </div>
   );
 }

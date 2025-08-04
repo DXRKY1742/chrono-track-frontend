@@ -52,6 +52,19 @@ export default function Agendas() {
     fetchAgendas();
   }, []);
 
+  const handleDelete = async (agendaId) => {
+    try {
+      setLoading(true);
+      await agendaService.deleteAgenda(agendaId);
+      setAgendas((prev) => prev.filter((a) => a.id !== agendaId));
+      fetchAgendas();
+    } catch (error) {
+      console.error("Error borrando la agenda:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-6 min-h-screen">
       <AgendaDialog 
@@ -101,7 +114,18 @@ export default function Agendas() {
                   ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
                   : "bg-blue-600 hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
                   text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4`}
-                onClick={() => navigate(`${agenda.id}/activities`)}
+                onClick={() => navigate(`${agenda.id}/activities`, {
+                  state: { agendaId: agenda.id, agendaName: agenda.name }
+                })}
+              />
+              <Button
+                label="Borrar"
+                icon="pi pi-trash"
+                className={`${isDark 
+                  ? "bg-red-700 hover:bg-red-800 border border-red-600 hover:border-red-700" 
+                  : "bg-red-600 hover:bg-red-700 border border-red-600 hover:border-red-700"} 
+                  text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4`}
+                onClick={() => handleDelete(agenda.id)}
               />
             </div>
           </Card>
