@@ -20,7 +20,7 @@ import userService from "../../services/userService";
 import categoryService from "../../services/categoryService";
 
 // Components
-import {createToastService} from "../../../components/toast/createToastService";
+import { createToastService } from "../toasts/createToastService";
 
 const priorities = [
   { label: 'Alta', value: 'h' },

@@ -20,7 +20,7 @@ import userService from "../../services/userService";
 import collaboratorService from "../../services/collaboratorService"
 
 // Components
-import {createToastService} from "../../../components/toast/createToastService";
+import { createToastService } from "../toasts/createToastService";
 
 
 const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeCollaborators, mode, collaboratorToEdit }) => {

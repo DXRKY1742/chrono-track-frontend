@@ -18,7 +18,7 @@ import taskService from '../../../services/tasksService';
 
 // Components
 import BarChart from './utils/barChart';
-import {createToastService} from "../../../components/toast/createToastService";
+import { createToastService } from '../../../components/toasts/createToastService';
 
 export default function Statistics() {
   // ----- Toast -----

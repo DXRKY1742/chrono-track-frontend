@@ -14,7 +14,7 @@ import { Toast } from "primereact/toast";
 
 // Components
 import AddActivityDialog from "../../../../components/dialogs/AddActivityDialog";
-import {createToastService} from "../../../components/toast/createToastService";
+import {createToastService} from "../../../../components/toasts/createToastService";
 
 // Services 
 import taskService from "../../../../services/tasksService";

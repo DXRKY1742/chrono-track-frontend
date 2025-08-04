@@ -12,6 +12,9 @@ import 'primeicons/primeicons.css';
 // Services
 import agendaService from "../../services/agendaService";
 
+// Components
+import { createToastService } from "../toasts/createToastService";
+
 const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
     // ----- Toast -----
     const toastRef = useRef(null);

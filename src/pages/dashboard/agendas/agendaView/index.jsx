@@ -17,8 +17,8 @@ import agendaService from "../../../../services/agendaService";
 
 // Components
 import ActivityDialog from "../../../../components/dialogs/ActivityDialog";
-import CollaboratorDialog from "../../../../components/dialogs/CollaboratorDialog"
-import {createToastService} from "../../../components/toast/createToastService";
+import CollaboratorDialog from "../../../../components/dialogs/collaboratorDialog";
+import { createToastService } from "../../../../components/toasts/createToastService";
 
 function AgendaView() {
   // ----- Toast -----

@@ -17,7 +17,7 @@ import agendaService from "../../../services/agendaService";
 
 // Components
 import AgendaDialog from "../../../components/dialogs/AgendaDialog";
-import {createToastService} from "../../../components/toast/createToastService";
+import { createToastService } from "../../../components/toasts/createToastService";
 
 export default function Agendas() {
   // ----- Toast -----

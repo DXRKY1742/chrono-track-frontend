@@ -16,8 +16,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {logout} from '../../../features/authSlice'
 
 // Components
-import {createToastService} from "../../../components/toast/createToastService";
-
+import { createToastService } from "../../../components/toasts/createToastService";
 export default function Settings() {
   const navigate = useNavigate();
   // ----- Toast -----
