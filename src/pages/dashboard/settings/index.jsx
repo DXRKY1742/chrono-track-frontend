@@ -1,5 +1,5 @@
 // React
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // Primereact
@@ -52,6 +52,10 @@ export default function Settings() {
     dispatch(logout());
     navigate("/login");
   };
+
+  useEffect(() => {
+    localStorage.setItem('appTheme', theme);
+  }, [theme]);
 
   return (
     <div className="p-6 min-h-screen">

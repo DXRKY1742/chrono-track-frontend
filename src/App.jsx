@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 // Redux
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
 
 //PRIMEREACT
 import { PrimeReactProvider } from 'primereact/api';
@@ -36,6 +36,15 @@ const isAuthenticated = () => {
 };
 
 export default function App() {
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('appTheme');
+    if (savedTheme) {
+      dispatch({ type: 'theme/set', payload: savedTheme });
+    }
+  }, [dispatch]);
+
   const theme = useSelector((state) => state.theme.currentTheme);
 
   useEffect(() => {

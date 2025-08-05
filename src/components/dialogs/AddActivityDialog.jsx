@@ -59,11 +59,6 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
     fetchCategories();
   }, []);
 
-  useEffect(() => {
-    if (suggestedInitDate) setInitDate(suggestedInitDate);
-  }, [suggestedInitDate]);
-
-
   const fetchCollaborators = async () => {
     setLoading(true)
     try {
