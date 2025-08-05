@@ -3,6 +3,9 @@
 // React
 import React, { useEffect, useState, useRef } from "react"
 
+// Redux
+import { useSelector } from 'react-redux';
+
 // Primereact
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -30,6 +33,9 @@ const priorities = [
 ];
 
 const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) => {
+  // ----- Theme -----
+  const theme = useSelector((state) => state.theme.currentTheme);
+  const isDark = theme === "arya-blue";
   // ----- Toast -----
   const toastRef = useRef(null);
   const toast = createToastService(toastRef);
@@ -171,7 +177,11 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
           <Button 
             label="Marcar completado" 
             icon="pi pi-check" 
-            className="px-3 py-1 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white border-none"
+            className={`${isDark 
+              ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+              : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+              text-white text-sm px-3 py-2 rounded-md transition-colors duration-200`
+            }
             onClick={handleMarkCompleted}
           />
         </div>
@@ -305,17 +315,21 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
               <Button
                 label="Cancelar"
                 onClick={handleCancel}
-                className="px-3 py-1 text-sm rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300"
+                className="px-3 py-1 text-sm font-medium rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300"
               />
               <Button
                 label="Actualizar"
                 onClick={handleSubmit}
                 disabled={!title || !description}
-                className={`px-4 py-1 text-sm rounded-md font-medium text-white transition border ${
-                  !title || !description
-                    ? 'bg-blue-300 border-blue-300 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700'
-                }`}
+                className={`${isDark 
+                  ? !title || !description
+                    ? "bg-gray-400 border-gray-400 cursor-not-allowed"
+                    : "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600"
+                  : !title || !description
+                    ? "bg-blue-300 border-blue-300 cursor-not-allowed"
+                    : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"
+                } 
+                text-white text-sm px-3 py-2 rounded-md transition-colors duration-200 font-medium`}
               />
             </div>
           </div>

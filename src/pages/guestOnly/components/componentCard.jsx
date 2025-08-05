@@ -31,10 +31,6 @@ export function AuthCard({ mode = "login" }) {
   const currentTheme = useSelector((state) => state.theme.currentTheme);
   const isDark = currentTheme === "arya-blue";
 
-  // Selectors
-  const loading = useSelector(state => state.auth.loading);
-  const error = useSelector(state => state.auth.error);
-
   // States
   const [identifier, setIdentifier] = useState('');
   const [name, setName] = useState('');
@@ -52,22 +48,62 @@ export function AuthCard({ mode = "login" }) {
   // Handlers
    const handleSubmit = async () => {
     if (mode === 'login') {
-      console.log('Attemting login')
-      dispatch(loginAsync({ identifier, password }));
+      if (!identifier || !password) {
+        toast.showError('Por favor, completa todos los campos.');
+        return;
+      }
+      const resultAction = await dispatch(loginAsync({ identifier, password }));
+      if (loginAsync.fulfilled.match(resultAction)) {
+        toast.showSuccess('Inicio de sesión exitoso');
+      } else {
+        const errorMsg = resultAction.payload?.message || 'Error al iniciar sesión';
+        toast.showError(errorMsg);
+      }
     } else {
-      console.log('Attempting register')
+      if (!name || !username || !phone || !email || !password || !confirmPassword) {
+        toast.showError('Por favor, completa todos los campos.');
+        return;
+      }
+      if (name.trim().length < 2) {
+        toast.showError('El nombre debe tener al menos 2 caracteres.');
+        return;
+      }
+      if (username.trim().length < 2) {
+        toast.showError('El nombre de usuario debe tener al menos 2 caracteres.');
+        return;
+      }
+      const phoneRegex = /^\d{10}$/;
+      if (!phoneRegex.test(phone)) {
+        toast.showError('Ingresa un número de teléfono válido de 10 dígitos.');
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.showError('Ingresa un correo electrónico válido.');
+        return;
+      }
+      if (password.length < 6) {
+        toast.showError('La contraseña debe tener al menos 6 caracteres.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.showError('Las contraseñas no coinciden.');
+        return;
+      }
+      console.log('Payload enviado al backend:', { name, username, phone, email, password });
       const resultAction = await dispatch(registerAsync({ name, username, phone, email, password }));
       if (registerAsync.fulfilled.match(resultAction)) {
-        console.log('Registro exitoso, redirigiendo al login...');
-        toast.showSuccess('Registro exitoso!')
+        toast.showSuccess('Registro exitoso!');
         setTimeout(() => {
           navigate('/login');
-        }, 1000); 
+        }, 1000);
       } else {
+        toast.showError('Error al registrar. Intenta de nuevo.');
         console.error('Error al registrar:', resultAction.error?.message);
       }
     }
   };
+
 
   return (
     <div className="flex justify-center items-center min-h-screen">
@@ -212,13 +248,13 @@ export function AuthCard({ mode = "login" }) {
               >
                 Crear cuenta
               </NavLink>
-              <NavLink
+              {/* <NavLink
                 to="/forgot-password"
                 // className="text-blue-600 hover:underline"
                 className={`${isDark ? "text-white" : "text-[#2979FF]"} hover:underline`}
               >
                 ¿Olvidaste tu contraseña?
-              </NavLink>
+              </NavLink> */}
             </div>
           )}
 

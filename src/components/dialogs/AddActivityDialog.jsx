@@ -3,6 +3,9 @@
 // React
 import React, { useEffect, useState, useRef } from "react"
 
+// Redux
+import { useSelector } from 'react-redux';
+
 // Primereact
 import { Dialog } from 'primereact/dialog';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -29,6 +32,9 @@ const priorities = [
 ];
 
 const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => {
+  // ----- Theme -----
+  const theme = useSelector((state) => state.theme.currentTheme);
+  const isDark = theme === "arya-blue";
   // ----- Toast -----
   const toastRef = useRef(null);
   const toast = createToastService(toastRef);
@@ -239,7 +245,15 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
               label="Guardar"
               onClick={handleSubmit}
               disabled={!title || !description || !initDate || !userAssignedId}
-              className={`px-4 py-2 rounded-md font-semibold text-white transition bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700 ${!title || !description ? 'p-button-disabled' : ''}`}
+              className={`${isDark 
+                ? !title || !description
+                  ? "bg-gray-400 border-gray-400 cursor-not-allowed"
+                  : "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600"
+                : !title || !description
+                  ? "bg-blue-300 border-blue-300 cursor-not-allowed"
+                  : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"
+              } 
+              text-white text-sm px-4 py-1 rounded-md transition-colors duration-200 font-medium`}
             />
           </div>
         </div>

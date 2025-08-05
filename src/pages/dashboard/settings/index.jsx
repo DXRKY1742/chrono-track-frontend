@@ -1,6 +1,7 @@
 // React
 import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+
 // Primereact
 import { Card } from "primereact/card";
 import { Button } from "primereact/button";
@@ -13,10 +14,11 @@ import './settings.css';
 
 // Redux
 import { useDispatch, useSelector } from 'react-redux';
-import {logout} from '../../../features/authSlice'
+import {logout, updateUser} from '../../../features/authSlice'
 
 // Components
 import { createToastService } from "../../../components/toasts/createToastService";
+import userService from "../../../services/userService";
 export default function Settings() {
   const navigate = useNavigate();
   // ----- Toast -----
@@ -37,6 +39,10 @@ export default function Settings() {
   const [deadlineNotif, setDeadlineNotif] = useState(true);
   const [newPass, setNewPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const [editableUsername, setEditableUsername] = useState(user?.username || '');
+  const [editablePhone, setEditablePhone] = useState(user?.phone || '');
+  const [isEditingInfo, setIsEditingInfo] = useState(false);
+
 
   const languages = [
     { name: "Español", code: "es" }
@@ -69,8 +75,32 @@ export default function Settings() {
 
           <div className="flex flex-col gap-1 m-4">
             <h2 className="text-lg font-semibold mb-2 ">Información personal</h2>
-            <p>Usuario: {user?.username}</p>
-            <p>Teléfono: {user?.phone}</p>
+            <div className="flex flex-col gap-2">
+            <div>
+              <label className="text-sm font-medium">Usuario</label>
+              {isEditingInfo ? (
+                <InputText
+                  value={editableUsername}
+                  onChange={(e) => setEditableUsername(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1 mt-1"
+                />
+              ) : (
+                <p>{editableUsername}</p>
+              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Teléfono</label>
+              {isEditingInfo ? (
+                <InputText
+                  value={editablePhone}
+                  onChange={(e) => setEditablePhone(e.target.value)}
+                  className="w-full border border-gray-300 rounded-md px-3 py-1 mt-1"
+                />
+              ) : (
+                <p>{editablePhone}</p>
+              )}
+            </div>
+          </div>
             <p>
               Miembro desde: {new Date(user?.registerDate).toLocaleDateString("es-MX", {
                 year: "numeric",
@@ -92,14 +122,40 @@ export default function Settings() {
           {/* Botones en la esquina inferior derecha */}
           <div className="absolute bottom-4 right-4 flex gap-2">
             <Button 
-              label="Editar perfil" 
-              icon="pi pi-user-edit" 
-              className="p-button-sm  font-medium px-4 py-2 rounded-lg transition-colors duration-200" 
+              label={isEditingInfo ? "Guardar" : "Editar perfil"}
+              icon={isEditingInfo ? "pi pi-check" : "pi pi-user-edit"}
+              className="p-button-sm font-medium px-4 py-1 rounded-lg transition-colors duration-200"
+              onClick={async () => {
+                if (isEditingInfo) {
+                  if (editableUsername.trim().length < 2) {
+                    toast.showError("El nombre de usuario debe tener al menos 2 caracteres.");
+                    return;
+                  }
+                  if (!/^\d{10}$/.test(editablePhone)) {
+                    toast.showError("El número debe tener 10 dígitos.");
+                    return;
+                  }
+                  try {
+                    const payload = {
+                      username: editableUsername.trim(),
+                      phone: editablePhone.trim(),
+                    };
+                    await userService.patchUser(user?.id, payload);
+                    dispatch(updateUser(payload));
+                    toast.showSuccess("Información actualizada correctamente.");
+                  } catch (error) {
+                    toast.showError("Ocurrió un error al guardar los cambios.");
+                    console.error("Error al actualizar usuario:", error);
+                    return; 
+                  }
+                }
+                setIsEditingInfo(!isEditingInfo);
+              }}
             />
             <Button 
               label="Cerrar sesión" 
               icon="pi pi-sign-out" 
-              className="p-button-sm  font-medium px-4 py-2 rounded-lg transition-colors duration-200" 
+              className="p-button-sm  font-medium px-4 py-1 rounded-lg transition-colors duration-200" 
               onClick={handleLogout}
             />
           </div>
@@ -122,7 +178,7 @@ export default function Settings() {
               onChange={(e) => setLanguage(e.value)}
               optionLabel="name"
               placeholder="Selecciona un idioma"
-              className="w-full rounded-4"
+              className="w-full border border-gray-300 rounded-md px-3 py-1"
             />
           </div>
 
@@ -196,21 +252,51 @@ export default function Settings() {
               placeholder="Nueva contraseña"
               value={newPass}
               onChange={(e) => setNewPass(e.target.value)}
-              className="w-full"
+              className="w-full border border-gray-300 rounded-md px-3 py-1"
             />
             <InputText
               type="password"
               placeholder="Confirmar contraseña"
               value={confirmPass}
               onChange={(e) => setConfirmPass(e.target.value)}
-              className="w-full"
+              className="w-full border border-gray-300 rounded-md px-3 py-1"
             />
           </div>
           <div className="m-4">
             <Button 
               label="Guardar" 
               icon="pi pi-check" 
-              className="w-full font-medium px-6 py-3 rounded-lg transition-colors duration-200"
+              className={`${isDark 
+                ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+                : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+                w-full text-white font-medium px-6 py-2 rounded-lg transition-colors duration-200`
+              }
+              onClick={async () => {
+                if (!newPass || !confirmPass) {
+                  toast.showError("Por favor, completa ambos campos de contraseña.");
+                  return;
+                }
+                if (newPass.length < 6) {
+                  toast.showError("La contraseña debe tener al menos 6 caracteres.");
+                  return;
+                }
+                if (newPass !== confirmPass) {
+                  toast.showError("Las contraseñas no coinciden.");
+                  return;
+                }
+                try {
+                  const payload = {
+                    password: newPass
+                  };
+                  await userService.patchUser(user?.id, payload);
+                  toast.showSuccess("Contraseña actualizada exitosamente.");
+                  setNewPass("");
+                  setConfirmPass("");
+                } catch (error) {
+                  toast.showError("Error al actualizar la contraseña.");
+                  console.error("Error al actualizar contraseña:", error);
+                }
+              }}
             />
           </div>
         </Card>

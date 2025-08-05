@@ -38,6 +38,9 @@ const CollaboratorDialog = ({visible, onHide, agendaName, collaboratorToEdit, ag
     { label: 'Colaborador', value: CollaboratorRol.WORKER }
   ];
 
+  // ----- Theme -----
+  const theme = useSelector((state) => state.theme.currentTheme);
+  const isDark = theme === "arya-blue";
   // ----- Toast -----
   const toastRef = useRef(null);
   const toast = createToastService(toastRef);
@@ -194,7 +197,11 @@ const CollaboratorDialog = ({visible, onHide, agendaName, collaboratorToEdit, ag
                 label={collaboratorToEdit ?  "Editar" : "Agregar"  }
                 onClick={handleSubmit}
                 // disabled={!selectedCollaborator}
-                className={`px-4 py-1 text-sm rounded-md font-medium text-white transition border bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700`}
+                className={`${isDark 
+                    ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600"
+                    : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"
+                } 
+                text-white text-sm px-4 py-1 rounded-md transition-colors duration-200 font-medium`}
               />
             </div>
           </div>

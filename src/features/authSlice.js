@@ -13,13 +13,28 @@ const initialState = {
 
 export const loginAsync = createAsyncThunk(
   'auth/login',
-  async ({ identifier, password }) => {
-    console.log('loginAsync attempt')
-    const response = await loginUser({ identifier, password });
-    console.log(response)
-    return response; 
+  async ({ identifier, password }, { rejectWithValue }) => {
+    try {
+      const response = await fetch('http://localhost:3000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifier, password }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = `Error ${response.status}`;
+        if (response.status === 404) errorMessage = 'Credenciales incorrectas';
+        return rejectWithValue({ status: response.status, message: errorMessage });
+      }
+
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      return rejectWithValue({ message: error.message || 'Error desconocido' });
+    }
   }
 );
+
 
 export const registerAsync = createAsyncThunk(
   'auth/register',
@@ -40,6 +55,9 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       localStorage.removeItem('token');
+    },
+    updateUser: (state, action) => {
+      state.user = { ...state.user, ...action.payload };
     },
     hydrate(state, action) {
       state.token = action.payload.token;
@@ -87,5 +105,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout, hydrate } = authSlice.actions;
+export const { logout, hydrate, updateUser } = authSlice.actions;
 export default authSlice;
