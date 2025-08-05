@@ -144,12 +144,27 @@ export default function Statistics() {
   return (
     <div className="p-6 min-h-screen">
       <Toast ref={toastRef} />
-      <h1 className="text-3xl font-bold mb-6">Estadísticas</h1>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Estadisticas</h1>
+        <div className="flex gap-2">
+          <button 
+              className={`${isDark 
+                ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+                : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+                text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
+              }
+              onClick={() => window.print()}
+            >
+              <i className="pi pi-file-pdf m-2" />
+              Imprimir pdf
+            </button>
+        </div>
+      </div>
       
       {/* Fila superior - Gráfico de barras + My Agendas */}
       <div className="flex flex-col lg:flex-row gap-6 mb-6">
         {/* Bar Chart */}
-        <Card className={`${cardBgClass} flex-1 lg:basis-[75%] rounded-xl shadow-lg border-0 overflow-hidden`}>
+        <Card id="printable-global-tasks" className={`${cardBgClass} flex-1 lg:basis-[75%] rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-medium text-blue-600">Global task report in range of date</h2>

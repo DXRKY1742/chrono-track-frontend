@@ -3,3 +3,21 @@
 .p-button .pi {
   margin-right: 12px !important;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-global-tasks,
+  #printable-global-tasks * {
+    visibility: visible;
+  }
+
+  #printable-global-tasks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+}
