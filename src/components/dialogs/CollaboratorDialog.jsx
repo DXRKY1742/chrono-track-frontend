@@ -23,15 +23,15 @@ import collaboratorService from "../../services/collaboratorService"
 import { createToastService } from "../toasts/createToastService";
 
 
-const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeCollaborators, mode, collaboratorToEdit }) => {
+const CollaboratorDialog = ({visible, onHide, agendaName, collaboratorToEdit, agendaId, activeCollaborators, mode, onSuccess }) => {
+  // User context
   const currentUser = useSelector((state) => state.auth.user);
-
+  // Role mappings
   const CollaboratorRol = {
     ADMIN: 'a',
     LEADER: 'l',
     WORKER: 'w',
   };
-
   const rolOptions = [
     { label: 'Administrador', value: CollaboratorRol.ADMIN },
     { label: 'Líder', value: CollaboratorRol.LEADER },
@@ -41,59 +41,45 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
   // ----- Toast -----
   const toastRef = useRef(null);
   const toast = createToastService(toastRef);
+
   // ----- States ------
   // Entities
   const [collaborators, setCollaborators] = useState([]);
+  const [selectableCollaborators, setSelectableCollaborators] = useState([])
+
   // Inputs
-  const [selectedCollaborator, setSelectedCollaborator] = useState(collaboratorToEdit?.id);
+  const [selectedCollaborator, setSelectedCollaborator] = useState(collaboratorToEdit);
   const [rol, setRol] = useState(CollaboratorRol.WORKER);
   // Miscelaneous
   const [loading, setLoading] = useState(false);
 
+  // ----- Dataloading -----
   useEffect(() => {
     fetchCollaborators();
-    }, []);
-  
-    const fetchCollaborators = async () => {
-      setLoading(true);
-      try {
-        const response = await userService.fetchUsers();
-        const activeIds = (activeCollaborators || []).map(col => col.userId);
-        let filtered = response.filter(
-          user => user.id !== currentUser.id && !activeIds.includes(user.id)
-        );
-        if (mode === 'edit' && collaboratorToEdit) {
-          const editingUser = response.find(user => user.id === collaboratorToEdit.userId);
-          if (editingUser && !filtered.some(u => u.id === editingUser.id)) {
-            filtered.push(editingUser);
-          }
-          setSelectedCollaborator(collaboratorToEdit.userId);
-          setRol(collaboratorToEdit.rol);
-        }
-        setCollaborators(filtered);
-      } catch (error) {
-        toast.showError('Error: ', error)
-      } finally {
-        setLoading(false);
-      }
-    };    
-  
-  // ----- Handlers -----
-  const handleSubmit = async () => {
+  }, []);   
+
+  useEffect(() => {
+    if (mode === 'create' && collaborators.length > 0) {
+      const activeIds = (activeCollaborators || []).map(col => col.user.id);
+      const filtered = collaborators.filter(
+        user => user.id !== currentUser.id && !activeIds.includes(user.id)
+      );
+      setSelectableCollaborators(filtered);
+    } 
+  }, [mode, activeCollaborators, collaborators, currentUser]);
+
+  useEffect(() => {
+    if (mode === 'edit' && collaboratorToEdit) {
+      setSelectedCollaborator(collaboratorToEdit.user);
+      setRol(collaboratorToEdit.rol);
+    }
+  }, [mode, collaboratorToEdit]);
+
+  const fetchCollaborators = async () => {
     setLoading(true);
     try {
-      const payload = {
-        userId: selectedCollaborator,
-        rol: rol
-      };
-      if (mode === 'edit') {
-        console.log(collaboratorToEdit)
-        await collaboratorService.patchCollaborator(collaboratorToEdit.user.id, payload);
-      } else {
-        await agendaService.postCollaboratorToAgenda(agendaId, payload);
-      }
-
-      onHide();
+      const response = await userService.fetchUsers();
+      setCollaborators(response)
     } catch (error) {
       toast.showError('Error: ', error)
     } finally {
@@ -101,17 +87,61 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
     }
   };
 
+  useEffect(()=>{
+    console.log('collaborator to edit: ', collaboratorToEdit)
+  },[collaboratorToEdit])
+  // ----- Handlers -----
+  const handleSubmit = async () => {
+    try {
+      if (mode === 'edit') {
+        const payload = {
+          userId: collaboratorToEdit.id,
+          rol: rol
+        }
+        await collaboratorService.patchCollaborator(collaboratorToEdit.id, payload);
+        toast.showSuccess("Se editó el colaborador seleccionado")
+        setTimeout(() => {
+          onSuccess();
+          onHide();
+        }, 1000);
+      } else {
+        const payload = {
+          userId: selectedCollaborator.id,
+          rol: selectedCollaborator.rol
+        }
+        await agendaService.postCollaboratorToAgenda(agendaId, payload);
+        toast.showSuccess('Colaborador agregado exitosamente!')
+        setTimeout(() => {
+          onSuccess();
+          onHide();
+        }, 1000);
+      }
+    } catch (error) {
+      toast.showError('Error: ', error)
+    }
+  }
+
+  const handleRemoveCollaboratorFromAgenda = async (id) => {
+    try {
+      await collaboratorService.deleteCollaborator(id);
+      toast.showSuccess("Se elimino el colaborador de esta agenda")
+      onSuccess();
+      onHide();
+    } catch (error) {
+      toast.showError('Error: ', error)
+    }
+  }
+
   const handleCancel = () => {
     onHide();
   };
-
-  useEffect(()=>{console.log(collaboratorToEdit)},[collaboratorToEdit])
 
   return (
     <Dialog
       header={
         <div className="flex justify-between items-center m-4 space-x-4">
-          <h2 className="text-lg font-semibold">Agregar colaborador</h2>
+          <h2 className="text-lg font-semibold">{mode === 'create' ? 'Agregar' : 'Editar'} colaborador</h2>
+          {mode === 'create' ? null : (<Button icon="pi pi-trash" onClick={() => handleRemoveCollaboratorFromAgenda(collaboratorToEdit.id)}/>)}
         </div>
       }
       visible={visible}
@@ -131,10 +161,10 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
             <label className=" font-medium block mb-2">Colaboradores para {agendaName}</label>
             <Dropdown
                 value={selectedCollaborator}
-                options={collaborators}
+                options={mode === 'edit' ? [collaboratorToEdit.user] : selectableCollaborators}
                 onChange={(e) => setSelectedCollaborator(e.value)}
                 optionLabel="name" 
-                optionValue="id"
+                disabled={mode === 'edit'}
                 placeholder="Selecciona colaboradores"
                 className="w-full border border-gray-300 rounded-md px-3 py-2"
             />
@@ -161,14 +191,10 @@ const CollaboratorDialog = ({ visible, onHide, agendaId, agendaName, activeColla
                 className="px-3 py-1 text-sm rounded-md bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300"
               />
               <Button
-                label="Agregar colaborador"
+                label={collaboratorToEdit ?  "Editar" : "Agregar"  }
                 onClick={handleSubmit}
-                disabled={!selectedCollaborator}
-                className={`px-4 py-1 text-sm rounded-md font-medium text-white transition border ${
-                  !selectedCollaborator
-                    ? 'bg-blue-300 border-blue-300 cursor-not-allowed'
-                    : 'bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700'
-                }`}
+                // disabled={!selectedCollaborator}
+                className={`px-4 py-1 text-sm rounded-md font-medium text-white transition border bg-blue-600 hover:bg-blue-700 border-blue-600 hover:border-blue-700`}
               />
             </div>
           </div>

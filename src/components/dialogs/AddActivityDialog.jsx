@@ -99,7 +99,9 @@ const AddActivityDialog = ({ visible, onHide, agendaId, suggestedInitDate }) => 
 
       await agendaService.postTaskToAgenda(agendaId, payload);
       toast.showSuccess('Actividad creada exitosamente')
-      onHide();
+      setTimeout(() => {
+        onHide();
+      }, 1000); 
     } catch (error) {
       toast.showError('Error: ', error)
     } finally {

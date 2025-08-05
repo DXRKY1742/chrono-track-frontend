@@ -1,7 +1,7 @@
 'use client'
 
 // React
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 
@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { Card } from 'primereact/card';
 import { InputText } from 'primereact/inputtext';
 import { Button } from 'primereact/button';
+import { Toast } from "primereact/toast";
 
 // Redux
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,7 +17,13 @@ import { useDispatch, useSelector } from 'react-redux';
 // Features
 import { loginAsync, registerAsync } from "../../../features/authSlice";
 
+// Components
+import { createToastService } from "../../../components/toasts/createToastService";
+
 export function AuthCard({ mode = "login" }) {
+  // ----- Toast -----
+  const toastRef = useRef(null);
+  const toast = createToastService(toastRef);
   // Dispatch 
   const dispatch = useDispatch();
 
@@ -52,7 +59,10 @@ export function AuthCard({ mode = "login" }) {
       const resultAction = await dispatch(registerAsync({ name, username, phone, email, password }));
       if (registerAsync.fulfilled.match(resultAction)) {
         console.log('Registro exitoso, redirigiendo al login...');
-        navigate('/login');
+        toast.showSuccess('Registro exitoso!')
+        setTimeout(() => {
+          navigate('/login');
+        }, 1000); 
       } else {
         console.error('Error al registrar:', resultAction.error?.message);
       }
@@ -61,6 +71,7 @@ export function AuthCard({ mode = "login" }) {
 
   return (
     <div className="flex justify-center items-center min-h-screen">
+      <Toast ref={toastRef} />
       <Card className="w-full sm:w-96 shadow-4 p-5 rounded-xl">
         <div className="flex flex-col gap-4">
           <img

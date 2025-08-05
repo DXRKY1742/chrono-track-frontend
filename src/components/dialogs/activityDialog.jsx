@@ -144,8 +144,14 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
     setLoading(true);
     try {
       await taskService.patchTask(localActivity.id, { state: newState });
-      setLocalActivity({ ...localActivity, state: newState });
+      if (localActivity.state !== newState) {
+        setLocalActivity({ ...localActivity, state: newState });
+      }
       toast.showSuccess('Actualizado')
+      setTimeout(() => {
+        onActivitySaved();
+        onHide();
+      }, 800);
     } catch (error) {
       toast.showError('Error: ', error)
     } finally {

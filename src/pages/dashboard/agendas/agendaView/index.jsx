@@ -38,7 +38,6 @@ function AgendaView() {
   const [selectedCollaborator, setSelectedCollaborator] = useState();
   const [completedActivities, setCompletedActivities] = useState([]);
   const [pendingActivities, setPendingActivities] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [pageIndexPending, setPageIndexPending] = useState(0);
   const [pageIndexCompleted, setPageIndexCompleted] = useState(0);
   const [pageSize, setPageSize] = useState(5);
@@ -47,6 +46,7 @@ function AgendaView() {
   const [showActivityDialog, setShowActivityDialog] = useState(false);
   const [showAddCollaboratorDialog, setShowAddCollaboratorDialog] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   // Column definitions
@@ -89,6 +89,7 @@ function AgendaView() {
     try {
       setLoading(true);
       const res = await agendaService.fetchTasksByAgendaId(agendaId);
+      console.log(res)
       const pending = []
       const completed = []
       res.forEach(item => {
@@ -138,11 +139,12 @@ function AgendaView() {
     }
   }
 
-  function openAddCollaboratorDialog(mode){
+  function openAddCollaboratorDialog(){
     setShowAddCollaboratorDialog(true)
   }
   function reloadActivities(){
     fetchTasks();
+    setShowActivityDialog(false)
   }
  
   if (loading) {
@@ -177,6 +179,7 @@ function AgendaView() {
         activeCollaborators={activeCollaborators}
         mode={selectedCollaborator ? 'edit' : 'create'}
         collaboratorToEdit={selectedCollaborator}
+        onSuccess={fetchCollaborators}
       />
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">{agendaName}</h1>
