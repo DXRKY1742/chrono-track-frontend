@@ -41,6 +41,8 @@ function AgendaView() {
   const [pageIndexPending, setPageIndexPending] = useState(0);
   const [pageIndexCompleted, setPageIndexCompleted] = useState(0);
   const [pageSize, setPageSize] = useState(5);
+  const [agendas, setAgendas] = useState([])
+  const [isMyAgenda, setIsMyAgenda] = useState()
 
   // Miscelaneous
   const [showActivityDialog, setShowActivityDialog] = useState(false);
@@ -78,12 +80,24 @@ function AgendaView() {
     }
   }
 
-
+  
   // ----- Effects -----
   useEffect(() => {
+    fetchAgendas();
     fetchTasks();
-    fetchCollaborators();
   }, []);
+
+  useEffect(()=>{
+    if(isMyAgenda){
+      fetchCollaborators();
+    }
+  },[isMyAgenda])
+
+ useEffect(() => {
+    if (!agendaId || agendas.length === 0) return;
+    const existeAgenda = agendas.some((agenda) => Number(agenda.id) === Number(agendaId));
+    setIsMyAgenda(existeAgenda);
+  }, [agendas, agendaId]);
 
   async function fetchTasks(){
     try {
@@ -112,6 +126,18 @@ function AgendaView() {
       setLoading(true);
       const res = await agendaService.fetchCollaboratorsByAgendaId(agendaId);
       setActiveCollaborators(res)
+    } catch (error) {
+      toast.showError('Error: ', error)
+    } finally {
+      setLoading(false);
+    }
+  }
+   
+  async function fetchAgendas() {
+    try {
+      setLoading(true);
+      const res = await agendaService.fetchAgendas();
+      setAgendas(res);
     } catch (error) {
       toast.showError('Error: ', error)
     } finally {
@@ -184,19 +210,21 @@ function AgendaView() {
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">{agendaName}</h1>
         <div className="flex gap-2">
-        <button 
-          className={`${isDark 
-            ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
-            : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
-            text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
-          }
-          onClick={() => navigate('create', {
-            state: { agendaId: agendaId, agendaName: agendaName }
-          })}
-        >
-          <i className="pi pi-plus m-2" />
-          Agregar actividad
-        </button>
+          {!isMyAgenda ? null : (
+            <button 
+              className={`${isDark 
+                ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+                : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+                text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
+              }
+              onClick={() => navigate('create', {
+                state: { agendaId: agendaId, agendaName: agendaName }
+              })}
+            >
+              <i className="pi pi-plus m-2" />
+              Agregar actividad
+            </button>
+          )}
         </div>
       </div>
 
@@ -232,74 +260,76 @@ function AgendaView() {
         </div>
       </div>
 
-      {/* Tabla de actividades completadas */}
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Actividades completadas</h2>
-        <div className="rounded-lg overflow-hidden border bg-white shadow">
-          <DataTable
-            value={completedActivities.slice(pageIndexCompleted * pageSize, (pageIndexCompleted + 1) * pageSize)}
-            className="w-full text-m"
-            showGridlines
-            size="medium"
-            stripedRows
-            onRowClick={(e) => handleRowClick(e.data)}
-            paginator
-            rows={pageSize}
-            first={pageIndexCompleted * pageSize}
-            totalRecords={completedActivities.length}
-            onPage={(e) => setPageIndexCompleted(e.page)}
-            emptyMessage={
-              <div className="text-center py-6">No hay actividades disponibles</div>
-            }
-          >
-            {completedActivitiesColumns.map((col, index) => (
-              <Column 
-                key={col.field || index}
-                field={col.field}
-                header={col.header}
-                body={col.body}
-              />
-            ))}
-          </DataTable>
-        </div>
-      </div>
-      {/* Tabla de colaboradores activos */}
-      <div className="mt-12">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-semibold mb-4">Colaboradores</h2>
-          <div className="flex gap-2">
-          <button 
-            className={`${isDark 
-              ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
-              : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
-              text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
-            }
-            onClick={() => openAddCollaboratorDialog('create')}
-          >
-            <i className="pi pi-plus m-2" />
-            Agregar colaborador
-          </button>
+      {!isMyAgenda ? null : (<>
+        {/* Tabla de actividades completadas */}
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">Actividades completadas</h2>
+          <div className="rounded-lg overflow-hidden border bg-white shadow">
+            <DataTable
+              value={completedActivities.slice(pageIndexCompleted * pageSize, (pageIndexCompleted + 1) * pageSize)}
+              className="w-full text-m"
+              showGridlines
+              size="medium"
+              stripedRows
+              onRowClick={(e) => handleRowClick(e.data)}
+              paginator
+              rows={pageSize}
+              first={pageIndexCompleted * pageSize}
+              totalRecords={completedActivities.length}
+              onPage={(e) => setPageIndexCompleted(e.page)}
+              emptyMessage={
+                <div className="text-center py-6">No hay actividades disponibles</div>
+              }
+            >
+              {completedActivitiesColumns.map((col, index) => (
+                <Column 
+                  key={col.field || index}
+                  field={col.field}
+                  header={col.header}
+                  body={col.body}
+                />
+              ))}
+            </DataTable>
           </div>
         </div>
-        <div className="rounded-lg overflow-hidden border bg-white shadow">
-          <DataTable
-            value={activeCollaborators}
-            className="w-full text-m"
-            showGridlines
-            size="medium"
-            stripedRows
-            paginator
-            rows={5}
-            emptyMessage={
-              <div className="text-center py-6">No hay colaboradores activos</div>
-            }
-            onRowClick={(e) => handleCollaboratorRowClick(e.data)}
-          >
-            <Column field="user.name" header="Nombre" />
-            <Column field="rol" header="Rol" />
-          </DataTable>
+        {/* Tabla de colaboradores activos */}
+        <div className="mt-12">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-semibold mb-4">Colaboradores</h2>
+            <div className="flex gap-2">
+            <button 
+              className={`${isDark 
+                ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
+                : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
+                text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
+              }
+              onClick={() => openAddCollaboratorDialog('create')}
+            >
+              <i className="pi pi-plus m-2" />
+              Agregar colaborador
+            </button>
+            </div>
+          </div>
+          <div className="rounded-lg overflow-hidden border bg-white shadow">
+            <DataTable
+              value={activeCollaborators}
+              className="w-full text-m"
+              showGridlines
+              size="medium"
+              stripedRows
+              paginator
+              rows={5}
+              emptyMessage={
+                <div className="text-center py-6">No hay colaboradores activos</div>
+              }
+              onRowClick={(e) => handleCollaboratorRowClick(e.data)}
+            >
+              <Column field="user.name" header="Nombre" />
+              <Column field="rol" header="Rol" />
+            </DataTable>
+          </div>
         </div>
-      </div>
+      </>)}
     </div>
   );
 }

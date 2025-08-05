@@ -124,7 +124,20 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       onHide();
       toast.showSuccess('Actualizado')
     } catch (error) {
-      toast.showError('Error: ', error)
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      if (status === 400) {
+        if (message?.toLowerCase().includes("not yours")) {
+          toast.showError("No tienes permisos para modificar esta agenda");
+        } else {
+          toast.showError(`Error 400: ${message || "Solicitud inválida"}`);
+        }
+      } else if (error.response) {
+        toast.showError(`Error ${status}: ${message || "Error del servidor"}`);
+      } else {
+        toast.showError("Error de red: " + (error.message || "Error desconocido"));
+      }
     } finally {
       setLoading(false);
     }
@@ -139,7 +152,20 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
       onHide();          
       toast.showSuccess('Actualizado') 
     } catch (error) {
-      toast.showError('Error: ', error)
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      if (status === 400) {
+        if (message?.toLowerCase().includes("not yours")) {
+          toast.showError("No tienes permisos para modificar esta agenda");
+        } else {
+          toast.showError(`Error 400: ${message || "Solicitud inválida"}`);
+        }
+      } else if (error.response) {
+        toast.showError(`Error ${status}: ${message || "Error del servidor"}`);
+      } else {
+        toast.showError( (error.message || "Error desconocido"));
+      }
     } finally {
       setLoading(false);
     }
@@ -159,7 +185,20 @@ const ActivityDialog = ({ visible, onHide, onActivitySaved, activityToEdit }) =>
         onHide();
       }, 800);
     } catch (error) {
-      toast.showError('Error: ', error)
+      const status = error.response?.status;
+      const message = error.response?.data?.message;
+
+      if (status === 400) {
+        if (message?.toLowerCase().includes("not yours")) {
+          toast.showError("No tienes permisos para modificar esta agenda");
+        } else {
+          toast.showError(`Error 400: ${message || "Solicitud inválida"}`);
+        }
+      } else if (error.response) {
+        toast.showError(`Error ${status}: ${message || "Error del servidor"}`);
+      } else {
+        toast.showError( (error.message || "Error desconocido"));
+      }
     } finally {
       setLoading(false);
     }
