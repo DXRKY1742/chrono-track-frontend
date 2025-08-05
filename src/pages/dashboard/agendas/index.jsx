@@ -24,14 +24,15 @@ export default function Agendas() {
   const toastRef = useRef(null);
   const toast = createToastService(toastRef);
   // ----- Theme -----
-    const currentTheme = useSelector((state) => state.theme.currentTheme);
-    const isDark = currentTheme === "arya-blue";
-    const cardBgClass = isDark ? "bg-gray-900" : "bg-gray-200";
+  const currentTheme = useSelector((state) => state.theme.currentTheme);
+  const isDark = currentTheme === "arya-blue";
+  const cardBgClass = isDark ? "bg-gray-900" : "bg-gray-200";
 
   // ----- UseStates -----
   // Agendas
   const [agendas, setAgendas] = useState([]);
   const [selectedAgenda, setSelectedAgenda] = useState()
+  const [mode, setMode] = useState('create')
 
   // Miscelaneous
   const [loading, setLoading] = useState(false) 
@@ -77,6 +78,7 @@ export default function Agendas() {
         onHide={() => setShowDialog(false)} 
         onAgendaSaved={fetchAgendas}
         agendaToEdit={selectedAgenda}
+        mode={mode}
       />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Agendas</h1>
@@ -88,7 +90,11 @@ export default function Agendas() {
             : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
             text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
           }
-          onClick={() => setShowDialog(true)}
+          onClick={() => {
+            setMode('create');
+            setSelectedAgenda(undefined);
+            setShowDialog(true);
+          }}
         />
       </div>
 
@@ -109,6 +115,7 @@ export default function Agendas() {
                   text-white font-medium px-3 py-1 text-sm rounded transition-colors duration-200 ml-4`}
                 onClick={() => {
                   setSelectedAgenda(agenda);
+                  setMode('edit')
                   setShowDialog(true);
                 }}
               />

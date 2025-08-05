@@ -237,7 +237,7 @@ export default function Statistics() {
         {/* Pie */}
         <Card className={`${cardBgClass} flex-1 lg:basis-[30%]  rounded-xl shadow-lg border-0 overflow-hidden`}>
           <div className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Pending Tasks</h2>
+            <h2 className="text-lg font-semibold mb-4">Pending Tasks By Agenda</h2>
             <div className="flex-grow flex justify-center items-center">
               <div className="w-[180px] h-[180px] flex justify-center items-center">
                 <Chart

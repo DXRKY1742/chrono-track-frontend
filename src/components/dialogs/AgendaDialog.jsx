@@ -18,7 +18,7 @@ import agendaService from "../../services/agendaService";
 // Components
 import { createToastService } from "../toasts/createToastService";
 
-const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
+const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit, mode}) => {
     // ----- Toast -----
     const toastRef = useRef(null);
     const toast = createToastService(toastRef);
@@ -48,15 +48,19 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-          if(agendaToEdit?.id){
+          if(mode === 'edit' &&agendaToEdit?.id){
             await agendaService.patchAgenda(agendaToEdit.id, {name, description})
+            toast.showSuccess('Agenda actualizada correctamente');
           } else {
             await agendaService.postAgenda({ name, description });
+            toast.showSuccess('Agenda creada correctamente');
           }
-          onAgendaSaved?.();
           setName('');
           setDescription('');
-          onHide();
+          setTimeout(() => {
+            onAgendaSaved?.();
+            onHide();
+          }, 1000); 
         } catch (error) {
             toast.showError('Error: ', error)
         } finally {
@@ -72,7 +76,7 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
 
     return (
     <Dialog
-      header={agendaToEdit ? "Editar agenda" : "Crear nueva agenda"}
+      header={mode === 'edit' ? "Editar agenda" : "Crear nueva agenda"}
       visible={visible}
       onHide={handleCancel}
       style={{ width: '30rem' }}
@@ -112,13 +116,15 @@ const AgendaDialog = ({visible, onHide, onAgendaSaved, agendaToEdit}) => {
             <button
               onClick={handleSubmit}
               disabled={!name || !description}
-              className={`${isDark 
-                ? "bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600" 
-                : "bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700"} 
-                text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200`
-              }
+              className={`px-4 py-2 rounded-lg font-medium transition-colors duration-200
+                ${!name || !description
+                  ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                  : isDark
+                    ? 'bg-gray-900 hover:bg-gray-800 border border-gray-700 hover:border-gray-600 text-white'
+                    : 'bg-[#2979FF] hover:bg-blue-700 border border-blue-600 hover:border-blue-700 text-white'
+                }`}
             >
-              {agendaToEdit ? "Actualizar" : "Guardar"}
+              {mode === 'edit' ? "Actualizar" : "Guardar"}
             </button>
           </div>
         </div>
